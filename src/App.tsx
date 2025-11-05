@@ -1,25 +1,86 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { useState } from 'react';
+import { Home, Package, BookOpen, User } from 'lucide-react';
+import { ThemeProvider } from './components/ThemeProvider';
+import { HomePage } from './components/HomePage';
+import { IngredientsPage } from './components/IngredientsPage';
+import { RecipesPage } from './components/RecipesPage';
+import { ProfilePage } from './components/ProfilePage';
+import { LoginPage } from './components/LoginPage';
+
+type Page = 'home' | 'ingredients' | 'recipes' | 'profile';
 
 function App() {
+  const [currentPage, setCurrentPage] = useState<Page>('home');
+  const [ingredients, setIngredients] = useState<string[]>([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+  };
+
+  // Si non connecté, afficher la page de login
+  if (!isLoggedIn) {
+    return (
+      <ThemeProvider>
+        <LoginPage onLogin={handleLogin} />
+      </ThemeProvider>
+    );
+  }
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'home':
+        return <HomePage ingredients={ingredients} setIngredients={setIngredients} />;
+      case 'ingredients':
+        return <IngredientsPage ingredients={ingredients} setIngredients={setIngredients} />;
+      case 'recipes':
+        return <RecipesPage />;
+      case 'profile':
+        return <ProfilePage />;
+      default:
+        return <HomePage ingredients={ingredients} setIngredients={setIngredients} />;
+    }
+  };
+
+  const navItems = [
+    { id: 'home' as Page, icon: Home, label: 'Accueil' },
+    { id: 'ingredients' as Page, icon: Package, label: 'Ingrédients' },
+    { id: 'recipes' as Page, icon: BookOpen, label: 'Recettes' },
+    { id: 'profile' as Page, icon: User, label: 'Profil' }
+  ];
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ThemeProvider>
+      <div className="flex flex-col h-screen bg-background text-foreground">
+        {/* Main Content */}
+        {renderPage()}
+
+        {/* Bottom Navigation */}
+        <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-primary/20">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="flex items-center justify-around h-20">
+              {navItems.map(({ id, icon: Icon, label }) => {
+                const isActive = currentPage === id;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setCurrentPage(id)}
+                    className={`flex flex-col items-center justify-center gap-1.5 flex-1 h-full transition-all ${
+                      isActive
+                        ? 'text-primary scale-105'
+                        : 'text-muted-foreground hover:text-primary/70'
+                    }`}
+                  >
+                    <Icon className={`w-6 h-6 ${isActive ? 'stroke-[2.5]' : ''}`} />
+                    <span className={`text-xs ${isActive ? 'font-semibold' : ''}`}>{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </nav>
+      </div>
+    </ThemeProvider>
   );
 }
 
