@@ -129,7 +129,7 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
         <div className="text-center space-y-3 pt-4">
           <h1 className="text-5xl flex items-center justify-center gap-3 text-primary display-font">
             <ChefHat className="w-12 h-12" />
-            Chef Gourmet
+            Frig'Oh
           </h1>
           <p className="text-muted-foreground text-lg">
             Découvrez des recettes raffinées basées sur vos ingrédients

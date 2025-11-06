@@ -18,6 +18,11 @@ function App() {
     setIsLoggedIn(true);
   };
 
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setCurrentPage('home'); // Réinitialiser la page à l'accueil
+  };
+
   // Si non connecté, afficher la page de login
   if (!isLoggedIn) {
     return (
@@ -36,7 +41,7 @@ function App() {
       case 'recipes':
         return <RecipesPage />;
       case 'profile':
-        return <ProfilePage />;
+        return <ProfilePage onLogout={handleLogout} />;
       default:
         return <HomePage ingredients={ingredients} setIngredients={setIngredients} />;
     }
