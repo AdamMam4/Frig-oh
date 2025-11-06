@@ -31,31 +31,39 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const FormSection = () => (
     <motion.div
       key={`form-${animationKey}`}
-      initial={{ x: isSignup ? '-100%' : '100%', opacity: 0.5 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: isSignup ? '100%' : '-100%', opacity: 0.5 }}
-      transition={{ 
-        duration: 0.7, 
-        ease: [0.65, 0, 0.35, 1],
-        opacity: { duration: 0.4 }
+      initial={{ 
+        x: isSignup ? '-100%' : '100%',
+        zIndex: 10
       }}
-      className="w-full h-full flex items-center justify-center p-12 bg-background"
+      animate={{ 
+        x: 0,
+        zIndex: 10
+      }}
+      exit={{ 
+        x: isSignup ? '100%' : '-100%',
+        zIndex: 1
+      }}
+      transition={{ 
+        duration: 0.8, 
+        ease: [0.65, 0, 0.35, 1]
+      }}
+      className="absolute inset-0 w-full h-full flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-background overflow-hidden"
     >
       <div className="w-full max-w-md">
         {/* Logo */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/20">
-            <ChefHat className="w-7 h-7 text-primary" />
+        <div className="flex items-center gap-2 mb-4 sm:mb-5">
+          <div className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary/20">
+            <ChefHat className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
           </div>
-          <span className="text-2xl display-font text-primary">Chef Gourmet</span>
+          <span className="text-lg sm:text-xl display-font text-primary">Frig'Oh</span>
         </div>
 
         {/* Title */}
-        <div className="mb-8">
-          <h1 className="text-4xl mb-3 display-font">
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl mb-1.5 sm:mb-2 display-font">
             {isSignup ? 'Créer un compte' : 'Bienvenue'}
           </h1>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-sm sm:text-base">
             {isSignup 
               ? 'Rejoignez notre communauté de gourmets' 
               : 'Connectez-vous à votre compte'}
@@ -63,7 +71,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <AnimatePresence mode="wait">
             {isSignup && (
               <motion.div
@@ -73,16 +81,16 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground">Nom complet</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs sm:text-sm text-muted-foreground">Nom complet</label>
                   <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       type="text"
                       placeholder="Jean Dupont"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="pl-12 h-12 bg-card border-primary/20 focus:border-primary"
+                      className="pl-10 h-10 sm:h-11 text-sm bg-card border-primary/20 focus:border-primary"
                     />
                   </div>
                 </div>
@@ -90,30 +98,30 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             )}
           </AnimatePresence>
 
-          <div className="space-y-2">
-            <label className="text-sm text-muted-foreground">Email</label>
+          <div className="space-y-1.5">
+            <label className="text-xs sm:text-sm text-muted-foreground">Email</label>
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="email"
                 placeholder="chef@gourmet.fr"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-12 h-12 bg-card border-primary/20 focus:border-primary"
+                className="pl-10 h-10 sm:h-11 text-sm bg-card border-primary/20 focus:border-primary"
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm text-muted-foreground">Mot de passe</label>
+          <div className="space-y-1.5">
+            <label className="text-xs sm:text-sm text-muted-foreground">Mot de passe</label>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="password"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-12 h-12 bg-card border-primary/20 focus:border-primary"
+                className="pl-10 h-10 sm:h-11 text-sm bg-card border-primary/20 focus:border-primary"
               />
             </div>
           </div>
@@ -122,33 +130,33 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             <div className="flex justify-end">
               <button
                 type="button"
-                className="text-sm text-primary hover:underline"
+                className="text-xs sm:text-sm text-primary hover:underline"
               >
                 Mot de passe oublié ?
               </button>
             </div>
           )}
 
-          <div className="pt-2">
+          <div className="pt-1">
             <Button
               type="submit"
-              className="w-full h-12 bg-primary hover:bg-primary/90 text-black group"
+              className="w-full h-10 sm:h-11 bg-primary hover:bg-primary/90 text-black group"
             >
-              {isSignup ? 'Créer mon compte' : 'Se connecter'}
+              <span className="text-sm">{isSignup ? 'Créer mon compte' : 'Se connecter'}</span>
               <motion.div
                 className="ml-2"
                 animate={{ x: [0, 5, 0] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               >
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-4 h-4" />
               </motion.div>
             </Button>
           </div>
         </form>
 
         {/* Toggle */}
-        <div className="mt-8 text-center">
-          <p className="text-muted-foreground">
+        <div className="mt-4 sm:mt-5 text-center">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             {isSignup ? 'Vous avez déjà un compte ?' : 'Pas encore de compte ?'}
             <button
               type="button"
@@ -161,8 +169,8 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         </div>
 
         {/* Demo Note */}
-        <div className="mt-6 p-4 rounded-xl bg-primary/5 border border-primary/20">
-          <p className="text-xs text-muted-foreground text-center">
+        <div className="mt-3 sm:mt-4 p-2.5 sm:p-3 rounded-lg bg-primary/5 border border-primary/20">
+          <p className="text-[10px] sm:text-xs text-muted-foreground text-center leading-snug">
             Mode démo : Cliquez sur "{isSignup ? 'Créer mon compte' : 'Se connecter'}" pour accéder à l'application
           </p>
         </div>
@@ -174,15 +182,23 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const HeroSection = () => (
     <motion.div
       key={`hero-${animationKey}`}
-      initial={{ x: isSignup ? '100%' : '-100%', opacity: 0.5 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: isSignup ? '-100%' : '100%', opacity: 0.5 }}
-      transition={{ 
-        duration: 0.7, 
-        ease: [0.65, 0, 0.35, 1],
-        opacity: { duration: 0.4 }
+      initial={{ 
+        x: isSignup ? '100%' : '-100%',
+        zIndex: 1
       }}
-      className="w-full h-full relative overflow-hidden"
+      animate={{ 
+        x: 0,
+        zIndex: 1
+      }}
+      exit={{ 
+        x: isSignup ? '-100%' : '100%',
+        zIndex: 10
+      }}
+      transition={{ 
+        duration: 0.8, 
+        ease: [0.65, 0, 0.35, 1]
+      }}
+      className="absolute inset-0 w-full h-full relative overflow-hidden"
     >
       {/* Background Image */}
       <div className="absolute inset-0">
@@ -195,20 +211,20 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       </div>
 
       {/* Content */}
-      <div className="relative h-full flex flex-col items-center justify-center p-12 text-white">
-        <div className="mb-8">
-          <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <ChefHat className="w-12 h-12" />
+      <div className="relative h-full flex flex-col items-center justify-center p-6 sm:p-8 text-white">
+        <div className="mb-5 sm:mb-6">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+            <ChefHat className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10" />
           </div>
         </div>
 
-        <div className="text-center max-w-lg">
-          <h2 className="text-5xl mb-4 display-font">
+        <div className="text-center max-w-lg px-4">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl mb-2.5 sm:mb-3 display-font leading-tight">
             {isSignup 
               ? 'Commencez votre aventure culinaire' 
               : 'Découvrez de nouvelles saveurs'}
           </h2>
-          <p className="text-xl text-white/90 leading-relaxed">
+          <p className="text-sm sm:text-base lg:text-lg text-white/90 leading-relaxed">
             {isSignup
               ? 'Créez des recettes uniques avec vos ingrédients préférés'
               : 'Transformez vos ingrédients en délicieux repas'}
@@ -225,7 +241,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="absolute top-20 right-20 w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm"
+          className="absolute top-10 sm:top-20 right-10 sm:right-20 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/10 backdrop-blur-sm"
         />
         <motion.div
           animate={{
@@ -236,38 +252,49 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="absolute bottom-32 left-20 w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm"
+          className="absolute bottom-20 sm:bottom-32 left-10 sm:left-20 w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-white/10 backdrop-blur-sm"
         />
       </div>
     </motion.div>
   );
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      <AnimatePresence mode="wait" initial={false}>
-        {isSignup ? (
-          <>
-            {/* Hero on left when signup */}
-            <div key={`hero-left-${animationKey}`} className="w-1/2">
-              <HeroSection />
-            </div>
-            {/* Form on right when signup */}
-            <div key={`form-right-${animationKey}`} className="w-1/2">
+    <div className="relative h-screen bg-background overflow-hidden">
+      <AnimatePresence initial={false}>
+        {/* Desktop: Two panels side by side with sliding animation */}
+        <div className="hidden lg:flex h-full relative">
+          {/* Container for sliding panels */}
+          <div className="relative w-full h-full flex">
+            {/* Form Section - slides left/right */}
+            <div 
+              className="w-1/2 h-full relative"
+              style={{
+                position: 'absolute',
+                left: isSignup ? '50%' : '0%',
+                transition: 'left 0.8s cubic-bezier(0.65, 0, 0.35, 1)'
+              }}
+            >
               <FormSection />
             </div>
-          </>
-        ) : (
-          <>
-            {/* Form on left when login */}
-            <div key={`form-left-${animationKey}`} className="w-1/2">
-              <FormSection />
-            </div>
-            {/* Hero on right when login */}
-            <div key={`hero-right-${animationKey}`} className="w-1/2">
+            
+            {/* Hero Section - slides left/right */}
+            <div 
+              className="w-1/2 h-full relative"
+              style={{
+                position: 'absolute',
+                left: isSignup ? '0%' : '50%',
+                transition: 'left 0.8s cubic-bezier(0.65, 0, 0.35, 1)'
+              }}
+            >
               <HeroSection />
             </div>
-          </>
-        )}
+          </div>
+        </div>
+
+        {/* Mobile: Form only, full width */}
+        <div className="lg:hidden w-full h-full">
+          <FormSection />
+        </div>
       </AnimatePresence>
     </div>
   );

@@ -6,7 +6,11 @@ import { Avatar, AvatarFallback } from './ui/avatar';
 import { User, Moon, Sun, Bell, Heart, Settings, LogOut, Crown } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 
-export function ProfilePage() {
+interface ProfilePageProps {
+  onLogout: () => void;
+}
+
+export function ProfilePage({ onLogout }: ProfilePageProps) {
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -144,6 +148,7 @@ export function ProfilePage() {
             </Button>
             <Button 
               variant="outline" 
+              onClick={onLogout}
               className="w-full justify-start h-14 rounded-xl border-destructive/30 hover:bg-destructive/10 text-destructive text-base"
             >
               <LogOut className="w-5 h-5 mr-3" />
