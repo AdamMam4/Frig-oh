@@ -9,7 +9,10 @@ class PyObjectId(ObjectId):
         yield cls.validate
 
     @classmethod
-    def validate(cls, v):
+    def validate(cls, v, *args, **kwargs):
+        # Accept extra args/kwargs for compatibility with different pydantic versions
+        if isinstance(v, ObjectId):
+            return v
         if not ObjectId.is_valid(v):
             raise ValueError("Invalid ObjectId")
         return ObjectId(v)
@@ -19,6 +22,11 @@ class UserBase(BaseModel):
     username: str = Field(..., min_length=3, max_length=50, example="johndoe")
 
 class UserCreate(UserBase):
+    password: str = Field(..., min_length=6, example="strongpassword123")
+
+
+class LoginRequest(BaseModel):
+    email: str = Field(..., example="user@example.com")
     password: str = Field(..., min_length=6, example="strongpassword123")
 
 class UserInDB(UserBase):

@@ -10,7 +10,7 @@ recipe_service = RecipeService()
 ai_service = AiService()
 auth_service = AuthService()
 
-@router.post("/", response_model=Recipe)
+@router.post("/")
 async def create_recipe(
     recipe: RecipeCreate,
     current_user = Depends(auth_service.get_current_user)

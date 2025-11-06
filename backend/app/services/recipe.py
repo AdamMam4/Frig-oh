@@ -9,7 +9,14 @@ class RecipeService:
         recipe_dict["user_id"] = user_id
         recipe_dict["is_ai_generated"] = is_ai_generated
         result = await recipes_collection.insert_one(recipe_dict)
-        return await recipes_collection.find_one({"_id": result.inserted_id})
+        doc = await recipes_collection.find_one({"_id": result.inserted_id})
+        # Convert ObjectId fields to strings to avoid pydantic validation issues
+        if doc is None:
+            return None
+        doc["_id"] = str(doc["_id"])
+        if "user_id" in doc:
+            doc["user_id"] = str(doc["user_id"])
+        return doc
 
     async def get_recipe(self, recipe_id: str) -> dict:
         return await recipes_collection.find_one({"_id": ObjectId(recipe_id)})

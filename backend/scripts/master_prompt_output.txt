@@ -1,0 +1,23 @@
+MODEL: models/gemini-2.5-flash
+
+PROMPT:
+Tu es un chef cuisinier expert. Crée une recette simple avec ces ingrédients :
+- Tomates
+- Carottes
+- Oignons
+- Pommes de terre
+- Viande (choisis le type)
+
+Réponds uniquement en JSON avec ce format :
+{
+  "title": string,
+  "ingredients": [{"item": string, "quantity": string}],
+  "equipment": [string],
+  "prep_time_minutes": int,
+  "cook_time_minutes": int,
+  "steps": [{"step": int, "text": string}],
+  "difficulty": "facile|moyen|difficile"
+}
+
+RESPONSE:
+ERROR: Invalid operation: The `response.text` quick accessor requires the response to contain a valid `Part`, but none were returned. The candidate's [finish_reason](https://ai.google.dev/api/generate-content#finishreason) is 2.
