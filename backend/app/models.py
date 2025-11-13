@@ -30,7 +30,8 @@ class LoginRequest(BaseModel):
     password: str = Field(..., min_length=6, example="strongpassword123")
 
 class UserInDB(UserBase):
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    # Use string representation for OpenAPI friendliness
+    id: str = Field(default_factory=lambda: str(PyObjectId()), alias="_id")
     hashed_password: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -49,8 +50,9 @@ class RecipeCreate(RecipeBase):
     pass
 
 class Recipe(RecipeBase):
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
-    user_id: PyObjectId
+    # Expose _id and user_id as strings in API schemas to avoid pydantic JSON schema issues
+    id: str = Field(default_factory=lambda: str(PyObjectId()), alias="_id")
+    user_id: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     is_ai_generated: bool = Field(default=False)
 

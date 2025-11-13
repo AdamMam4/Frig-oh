@@ -1,4 +1,4 @@
-MODEL: models/gemini-2.5-flash
+MODEL: models/gemini-2.0-flash
 
 PROMPT:
 Tu es un chef cuisinier expert. Crée une recette simple avec ces ingrédients :
@@ -20,4 +20,46 @@ Réponds uniquement en JSON avec ce format :
 }
 
 RESPONSE:
-ERROR: Invalid operation: The `response.text` quick accessor requires the response to contain a valid `Part`, but none were returned. The candidate's [finish_reason](https://ai.google.dev/api/generate-content#finishreason) is 2.
+```json
+{
+  "title": "Ragoût de Boeuf Rustique",
+  "ingredients": [
+    {"item": "Boeuf (morceaux pour ragoût)", "quantity": "500g"},
+    {"item": "Tomates", "quantity": "500g"},
+    {"item": "Carottes", "quantity": "3",
+    "item": "Oignons", "quantity": "2"},
+    {"item": "Pommes de terre", "quantity": "4 moyennes"},
+    {"item": "Bouillon de boeuf", "quantity": "500ml"},
+    {"item": "Huile d'olive", "quantity": "2 cuillères à soupe"},
+    {"item": "Thym séché", "quantity": "1 cuillère à café"},
+    {"item": "Laurier", "quantity": "1 feuille"},
+    {"item": "Sel", "quantity": "Au goût"},
+    {"item": "Poivre", "quantity": "Au goût"}
+  ],
+  "equipment": [
+    "Grande cocotte ou marmite",
+    "Couteau",
+    "Planche à découper"
+  ],
+  "prep_time_minutes": 20,
+  "cook_time_minutes": 90,
+  "steps": [
+    {"step": 1, "text": "Couper le boeuf en morceaux d'environ 3cm."},
+    {"step": 2, "text": "Éplucher et couper les oignons en dés."},
+    {"step": 3, "text": "Éplucher et couper les carottes en rondelles."},
+    {"step": 4, "text": "Éplucher et couper les pommes de terre en morceaux."},
+    {"step": 5, "text": "Couper les tomates en morceaux."},
+    {"step": 6, "text": "Dans la cocotte, faire chauffer l'huile d'olive à feu moyen-vif."},
+    {"step": 7, "text": "Faire dorer les morceaux de boeuf de tous les côtés. Saler et poivrer."},
+    {"step": 8, "text": "Retirer le boeuf et réserver."},
+    {"step": 9, "text": "Dans la même cocotte, faire revenir les oignons jusqu'à ce qu'ils soient translucides."},
+    {"step": 10, "text": "Ajouter les carottes et cuire pendant 5 minutes."},
+    {"step": 11, "text": "Remettre le boeuf dans la cocotte."},
+    {"step": 12, "text": "Ajouter les tomates, le thym, le laurier et le bouillon de boeuf."},
+    {"step": 13, "text": "Porter à ébullition, puis réduire le feu et laisser mijoter à couvert pendant 1 heure."},
+    {"step": 14, "text": "Ajouter les pommes de terre et cuire encore 30 minutes, ou jusqu'à ce que le boeuf et les pommes de terre soient tendres."},
+    {"step": 15, "text": "Retirer la feuille de laurier avant de servir. Rectifier l'assaisonnement si nécessaire."}
+  ],
+  "difficulty": "facile"
+}
+```
