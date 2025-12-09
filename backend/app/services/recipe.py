@@ -3,8 +3,11 @@ from app.database import recipes_collection
 from bson import ObjectId
 from typing import List
 
+
 class RecipeService:
-    async def create_recipe(self, recipe: RecipeCreate, user_id: ObjectId, is_ai_generated: bool = False) -> dict:
+    async def create_recipe(
+        self, recipe: RecipeCreate, user_id: ObjectId, is_ai_generated: bool = False
+    ) -> dict:
         recipe_dict = recipe.dict()
         recipe_dict["user_id"] = user_id
         recipe_dict["is_ai_generated"] = is_ai_generated
@@ -20,8 +23,7 @@ class RecipeService:
 
     async def update_recipe(self, recipe_id: str, recipe_data: dict) -> dict:
         await recipes_collection.update_one(
-            {"_id": ObjectId(recipe_id)},
-            {"$set": recipe_data}
+            {"_id": ObjectId(recipe_id)}, {"$set": recipe_data}
         )
         return await self.get_recipe(recipe_id)
 

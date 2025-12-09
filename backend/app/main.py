@@ -17,6 +17,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(recipes.router, prefix="/recipes", tags=["Recipes"])
 
+
 @app.get("/")
 async def root():
     return {"message": "Welcome to Recipe API. See /docs for documentation"}

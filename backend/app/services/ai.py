@@ -5,10 +5,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class AiService:
     def __init__(self):
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        self.model = genai.GenerativeModel('gemini-pro')
+        self.model = genai.GenerativeModel("gemini-pro")
 
     async def generate_recipe(self, ingredients: List[str]) -> Dict:
         prompt = f"""Create a recipe using these ingredients: {', '.join(ingredients)}

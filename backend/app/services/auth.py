@@ -10,11 +10,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class AuthService:
     def __init__(self):
         # Support pbkdf2_sha256 as primary (no bcrypt binary dependency issues on some systems)
         # and keep bcrypt as a secondary scheme for compatibility.
-        self.pwd_context = CryptContext(schemes=["pbkdf2_sha256", "bcrypt"], deprecated="auto")
+        self.pwd_context = CryptContext(
+            schemes=["pbkdf2_sha256", "bcrypt"], deprecated="auto"
+        )
         self.oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
         self.SECRET_KEY = os.getenv("SECRET_KEY")
         self.ALGORITHM = os.getenv("ALGORITHM")
@@ -26,17 +29,23 @@ class AuthService:
     def get_password_hash(self, password: str) -> str:
         return self.pwd_context.hash(password)
 
-    def create_access_token(self, data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    def create_access_token(
+        self, data: dict, expires_delta: Optional[timedelta] = None
+    ) -> str:
         to_encode = data.copy()
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES)
+            expire = datetime.utcnow() + timedelta(
+                minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES
+            )
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, self.SECRET_KEY, algorithm=self.ALGORITHM)
         return encoded_jwt
 
-    async def get_current_user(self, token: str = Depends(OAuth2PasswordBearer(tokenUrl="login"))):
+    async def get_current_user(
+        self, token: str = Depends(OAuth2PasswordBearer(tokenUrl="login"))
+    ):
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",

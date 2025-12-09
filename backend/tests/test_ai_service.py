@@ -9,12 +9,14 @@ def test_ai_generate_monkeypatch(monkeypatch):
 
     async def fake_generate_content(prompt):
         # Return a simple text that evals to a dict (matches implementation)
-        return SimpleNamespace(text="{"
-                                 "'title':'AI Soup',"
-                                 "'ingredients':['water','salt'],"
-                                 "'instructions':['boil water','add salt'],"
-                                 "'cooking_time':10,"
-                                 "'servings':2}" )
+        return SimpleNamespace(
+            text="{"
+            "'title':'AI Soup',"
+            "'ingredients':['water','salt'],"
+            "'instructions':['boil water','add salt'],"
+            "'cooking_time':10,"
+            "'servings':2}"
+        )
 
     # Replace the async generate_content on the model
     monkeypatch.setattr(ai.model, "generate_content", fake_generate_content)
