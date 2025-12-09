@@ -17,12 +17,12 @@ from pathlib import Path
 
 # Configuration
 BASE_URL = "http://localhost:8000"
-USERNAME = "testuser"  # Change to your username
-PASSWORD = "password123"  # Change to your password
+USERNAME = "ynsyns" 
+PASSWORD = "russie"  
 
 def login(username: str, password: str) -> str:
     """Login and get authentication token."""
-    print(f"🔐 Logging in as {username}...")
+    print(f"Logging in as {username}...")
     
     response = requests.post(
         f"{BASE_URL}/auth/login",
@@ -48,7 +48,7 @@ def analyze_ingredients(image_path: str, token: str) -> dict:
     Returns:
         Dictionary with detected ingredients
     """
-    print(f"\n📸 Analyzing image: {image_path}")
+    print(f"\nAnalyzing image: {image_path}")
     
     if not os.path.exists(image_path):
         print(f"❌ Image file not found: {image_path}")
@@ -67,7 +67,7 @@ def analyze_ingredients(image_path: str, token: str) -> dict:
     if response.status_code == 200:
         data = response.json()
         print(f"✅ {data['message']}")
-        print(f"\n🥗 Detected Ingredients:")
+        print(f"\nDetected Ingredients:")
         for i, ingredient in enumerate(data['ingredients'], 1):
             print(f"   {i}. {ingredient}")
         return data
@@ -86,7 +86,7 @@ def generate_recipe_from_photo(image_path: str, token: str) -> dict:
     Returns:
         Dictionary with detected ingredients and generated recipe
     """
-    print(f"\n📸 Generating recipe from image: {image_path}")
+    print(f"\nGenerating recipe from image: {image_path}")
     
     if not os.path.exists(image_path):
         print(f"❌ Image file not found: {image_path}")
@@ -106,12 +106,12 @@ def generate_recipe_from_photo(image_path: str, token: str) -> dict:
         data = response.json()
         print(f"✅ {data['message']}")
         
-        print(f"\n🥗 Detected Ingredients:")
+        print(f"\nDetected Ingredients:")
         for i, ingredient in enumerate(data['detected_ingredients'], 1):
             print(f"   {i}. {ingredient}")
         
         recipe = data['recipe']
-        print(f"\n📖 Generated Recipe: {recipe['title']}")
+        print(f"\nGenerated Recipe: {recipe['title']}")
         print(f"⏱️  Cooking Time: {recipe['cooking_time']} minutes")
         print(f"🍽️  Servings: {recipe['servings']}")
         
@@ -119,7 +119,7 @@ def generate_recipe_from_photo(image_path: str, token: str) -> dict:
         for i, ingredient in enumerate(recipe['ingredients'], 1):
             print(f"   {i}. {ingredient}")
         
-        print(f"\n👨‍🍳 Instructions:")
+        print(f"\nInstructions:")
         for i, instruction in enumerate(recipe['instructions'], 1):
             print(f"   {i}. {instruction}")
         

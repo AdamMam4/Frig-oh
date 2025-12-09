@@ -36,7 +36,7 @@ python run.py
 python scripts/example_photo_upload.py path/to/image.jpg
 
 # Option 2: Use curl (after logging in)
-curl -X POST "http://localhost:8000/recipes/analyze-ingredients" \
+curl -X POST "http://localhost:3000/recipes/analyze-ingredients" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -F "file=@ingredients.jpg"
 ```

@@ -15,7 +15,7 @@ class AuthService:
         # Support pbkdf2_sha256 as primary (no bcrypt binary dependency issues on some systems)
         # and keep bcrypt as a secondary scheme for compatibility.
         self.pwd_context = CryptContext(schemes=["pbkdf2_sha256", "bcrypt"], deprecated="auto")
-        self.oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+        self.oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
         self.SECRET_KEY = os.getenv("SECRET_KEY")
         self.ALGORITHM = os.getenv("ALGORITHM")
         self.ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))

@@ -16,3 +16,6 @@ class UserService:
 
     async def get_user_by_email(self, email: str) -> Optional[dict]:
         return await users_collection.find_one({"email": email})
+
+    async def get_user_by_username(self, username: str) -> Optional[dict]:
+        return await users_collection.find_one({"username": username})
