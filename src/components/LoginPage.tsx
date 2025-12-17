@@ -3,7 +3,7 @@ import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { ChefHat, Mail, Lock, User, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ImageWithFallback } from './figma/ImageWithFallback';
+import SaladThree from './SaladThree';
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -200,14 +200,12 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       }}
       className="absolute inset-0 w-full h-full relative overflow-hidden"
     >
-      {/* Background Image */}
-      <div className="absolute inset-0">
-        <ImageWithFallback
-          src="https://images.unsplash.com/photo-1623345260599-6f5cba600f6a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29kJTIwcHJlcGFyYXRpb24lMjBjb29raW5nfGVufDF8fHx8MTc2MjMzMDY5OXww&ixlib=rb-4.1.0&q=80&w=1080"
-          alt="Cooking background"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/80 to-primary/70"></div>
+      {/* 3D Three.js Salad Scene (replaces background image) */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-full h-full">
+          <SaladThree className="w-full h-full" />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/80 to-primary/70 mix-blend-multiply pointer-events-none"></div>
       </div>
 
       {/* Content */}
