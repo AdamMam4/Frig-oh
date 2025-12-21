@@ -1,4 +1,6 @@
-const API_BASE_URL = "http://localhost:8000";
+// Allow overriding the backend url via environment for dev/staging:
+// set REACT_APP_API_BASE_URL to point to your backend (e.g. http://localhost:8000)
+const API_BASE_URL = (process.env as any).REACT_APP_API_BASE_URL || "http://localhost:8000";
 
 export interface GeneratedRecipe {
   title: string;
