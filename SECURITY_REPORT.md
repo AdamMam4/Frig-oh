@@ -3,6 +3,7 @@
 ## ⚠️ SITUATION ACTUELLE
 
 ### ✅ Actions complétées
+
 1. **Fichiers de test supprimés** - Tous les fichiers d'analyse temporaires ont été retirés
 2. **Logs de débogage retirés** - Les `print()` dans `auth.py` ont été supprimés
 3. **Valeurs codées en dur nettoyées** - `update_user_username.py` utilise maintenant les variables d'environnement
@@ -13,7 +14,8 @@
 ### 🔍 Analyse de l'historique Git
 
 **Commits trouvés contenant des valeurs sensibles :**
-- `67123f68` - "chore(secrets): sanitize scripts and remove local .env" 
+
+- `67123f68` - "chore(secrets): sanitize scripts and remove local .env"
 - `7ddcdc9b` - "feature which permit to use the llm"
 - `cb0627f9` - "chore: add integration test and .env.example"
 
@@ -28,6 +30,7 @@
 Même si `.env` n'a pas été committé, par précaution :
 
 #### MongoDB Atlas
+
 1. Connectez-vous à [MongoDB Atlas](https://cloud.mongodb.com/)
 2. Allez dans "Database Access"
 3. **Supprimez** l'utilisateur `BJLAeKLN` ou changez son mot de passe
@@ -35,16 +38,20 @@ Même si `.env` n'a pas été committé, par précaution :
 5. Mettez à jour `MONGODB_URL` dans votre `.env` local
 
 #### Gemini API Key
+
 1. Connectez-vous à [Google AI Studio](https://makersuite.google.com/app/apikey)
 2. **Révoquez** la clé `AIzaSyDQ3eiorFKLR2KTCo_Jmn66b-eqJsYyDfM`
 3. Créez une nouvelle clé API
 4. Mettez à jour `GEMINI_API_KEY` dans votre `.env` local
 
 #### JWT Secret Key
+
 1. Générez une nouvelle clé sécurisée :
+
 ```bash
 python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
+
 2. Mettez à jour `SECRET_KEY` dans votre `.env` local
 
 ### 2. Configuration du nouveau .env
@@ -80,6 +87,7 @@ git status
 ## 📋 BONNES PRATIQUES POUR L'AVENIR
 
 ### ✅ À FAIRE
+
 - ✅ Toujours utiliser `.env.example` pour documenter les variables requises
 - ✅ Garder `.env` dans `.gitignore`
 - ✅ Utiliser des variables d'environnement (jamais de valeurs codées en dur)
@@ -88,6 +96,7 @@ git status
 - ✅ Limiter les permissions des clés API (IP whitelist pour MongoDB, quotas pour Gemini)
 
 ### ❌ À NE JAMAIS FAIRE
+
 - ❌ Committer `.env` ou tout fichier contenant des secrets
 - ❌ Coder en dur des clés API ou mots de passe
 - ❌ Partager des clés via email, Slack, Discord, etc.
@@ -96,7 +105,7 @@ git status
 
 ## 🔐 Configuration MongoDB Atlas sécurisée
 
-1. **Network Access** : 
+1. **Network Access** :
    - Ne PAS utiliser `0.0.0.0/0` (accepte toutes les IPs)
    - Ajoutez uniquement vos IPs de développement
    - Pour le déploiement, ajoutez l'IP du serveur
@@ -137,6 +146,7 @@ git status
 ## 📞 SUPPORT
 
 Si vous avez besoin d'aide pour :
+
 - Révoquer les anciennes clés
 - Configurer MongoDB Atlas
 - Générer de nouvelles clés sécurisées

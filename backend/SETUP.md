@@ -11,12 +11,14 @@ cp .env.example .env
 ### 2. Configurer MongoDB
 
 **Option A : MongoDB Local**
+
 ```env
 MONGODB_URL=mongodb://localhost:27017/
 DATABASE_NAME=frigoh
 ```
 
 **Option B : MongoDB Atlas (Recommandé)**
+
 1. Créez un compte sur [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
 2. Créez un cluster gratuit
 3. Créez un utilisateur de base de données
@@ -35,6 +37,7 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
 Copiez le résultat dans `.env` :
+
 ```env
 SECRET_KEY=<votre_clé_générée>
 ```
@@ -51,12 +54,14 @@ GEMINI_API_KEY=<votre_clé_api>
 ## ⚠️ Sécurité
 
 ### ❌ Ne JAMAIS faire :
+
 - Committer le fichier `.env`
 - Partager vos clés API
 - Coder des secrets en dur dans le code
 - Utiliser les mêmes clés en dev et production
 
 ### ✅ Toujours faire :
+
 - Garder `.env` dans `.gitignore`
 - Utiliser des variables d'environnement
 - Régénérer les clés si elles sont exposées
@@ -81,10 +86,12 @@ Documentation interactive : `http://localhost:8000/docs`
 ## 📚 API Endpoints
 
 ### Authentification
+
 - `POST /auth/register` - Créer un compte
 - `POST /auth/login` - Se connecter
 
 ### Recettes (authentification requise)
+
 - `POST /recipes/` - Créer une recette
 - `GET /recipes/` - Lister mes recettes
 - `POST /recipes/generate` - Générer avec IA
@@ -92,14 +99,14 @@ Documentation interactive : `http://localhost:8000/docs`
 
 ## 🔒 Variables d'environnement requises
 
-| Variable | Description | Exemple |
-|----------|-------------|---------|
-| `MONGODB_URL` | URL de connexion MongoDB | `mongodb://localhost:27017/` |
-| `DATABASE_NAME` | Nom de la base de données | `frigoh` |
-| `SECRET_KEY` | Clé secrète JWT | Généré avec secrets |
-| `ALGORITHM` | Algorithme JWT | `HS256` |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | Durée du token | `30` |
-| `GEMINI_API_KEY` | Clé API Gemini | De Google AI Studio |
+| Variable                      | Description               | Exemple                      |
+| ----------------------------- | ------------------------- | ---------------------------- |
+| `MONGODB_URL`                 | URL de connexion MongoDB  | `mongodb://localhost:27017/` |
+| `DATABASE_NAME`               | Nom de la base de données | `frigoh`                     |
+| `SECRET_KEY`                  | Clé secrète JWT           | Généré avec secrets          |
+| `ALGORITHM`                   | Algorithme JWT            | `HS256`                      |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Durée du token            | `30`                         |
+| `GEMINI_API_KEY`              | Clé API Gemini            | De Google AI Studio          |
 
 ## 🧪 Tests
 
