@@ -139,20 +139,37 @@ export default function SaladThree({ className }: { className?: string }) {
     // animation loop
     let frameId: number;
     const clock = new THREE.Clock();
-    function animate() {
-      const delta = clock.getDelta();
-      
-      // auto-rotate when not dragging
-      if (!isDragging) {
-        targetRotY += delta * 0.3; // gentle automatic rotation
+
+    // Avoid big delta spikes when tab visibility changes
+    function onVisibilityChange() {
+      if (!document.hidden) {
+        // reset delta by sampling once
+        clock.getDelta();
       }
-      
-      // smoothly interpolate modelGroup rotation towards targets
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    function animate() {
+      // clamp delta to avoid large backlogs on resume
+      const deltaRaw = clock.getDelta();
+      const delta = Math.min(deltaRaw, 0.033); // ~33ms max step
+
+      // auto-rotate when not dragging (direct incremental, no backlog)
+      if (!isDragging) {
+        const autoSpeed = 0.25; // radians per second, gentle
+        modelGroup.rotation.y += autoSpeed * delta;
+        // keep targets in sync to avoid snap when user starts dragging
+        targetRotY = modelGroup.rotation.y;
+        targetRotX = modelGroup.rotation.x;
+      }
+
+      // smoothly interpolate modelGroup rotation towards targets (for drag)
       modelGroup.rotation.x += (targetRotX - modelGroup.rotation.x) * 0.08;
       modelGroup.rotation.y += (targetRotY - modelGroup.rotation.y) * 0.08;
 
       // gentle bob of parent group for subtle motion
-      group.position.y = Math.sin(clock.elapsedTime * 0.9) * 0.005 - 0.02;
+      const t = Math.min(clock.elapsedTime, 1e6); // guard against huge values
+      group.position.y = Math.sin(t * 0.9) * 0.005 - 0.02;
 
       renderer.render(scene, camera);
       frameId = requestAnimationFrame(animate);
@@ -166,6 +183,7 @@ export default function SaladThree({ className }: { className?: string }) {
       renderer.domElement.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('resize', onResize);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       mount.removeChild(renderer.domElement);
       // no primitive geometries to dispose; rely on GLTF traversal if model loaded
       // dispose loaded gltf if any
