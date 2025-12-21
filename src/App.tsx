@@ -6,6 +6,7 @@ import { IngredientsPage } from './components/IngredientsPage';
 import { RecipesPage } from './components/RecipesPage';
 import { ProfilePage } from './components/ProfilePage';
 import { LoginPage } from './components/LoginPage';
+import IntroVideo from './components/IntroVideo';
 
 type Page = 'home' | 'ingredients' | 'recipes' | 'profile';
 
@@ -13,6 +14,8 @@ function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // utilise sessionStorage : l'intro rejoue à chaque nouvelle session navigateur
+  const [showIntro, setShowIntro] = useState(() => !sessionStorage.getItem('introPlayed'));
 
   const handleLogin = () => {
     setIsLoggedIn(true);
@@ -22,6 +25,16 @@ function App() {
     setIsLoggedIn(false);
     setCurrentPage('home'); // Réinitialiser la page à l'accueil
   };
+
+  const handleIntroComplete = () => {
+    sessionStorage.setItem('introPlayed', 'true');
+    setShowIntro(false);
+  };
+
+  // Si l'intro doit être affichée
+  if (showIntro) {
+    return <IntroVideo onIntroComplete={handleIntroComplete} />;
+  }
 
   // Si non connecté, afficher la page de login
   if (!isLoggedIn) {
