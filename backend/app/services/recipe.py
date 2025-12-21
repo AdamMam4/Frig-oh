@@ -26,14 +26,7 @@ class RecipeService:
 
     async def get_user_recipes(self, user_id: ObjectId) -> List[dict]:
         cursor = recipes_collection.find({"user_id": user_id})
-        recipes = await cursor.to_list(length=None)
-        # Convert ObjectId fields to strings
-        for recipe in recipes:
-            if "_id" in recipe:
-                recipe["_id"] = str(recipe["_id"])
-            if "user_id" in recipe:
-                recipe["user_id"] = str(recipe["user_id"])
-        return recipes
+        return await cursor.to_list(length=None)
 
     async def update_recipe(self, recipe_id: str, recipe_data: dict) -> dict:
         await recipes_collection.update_one(
