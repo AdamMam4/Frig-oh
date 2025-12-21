@@ -124,23 +124,23 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
 
   return (
     <div className="flex-1 overflow-y-auto pb-20">
-      <div className="max-w-6xl mx-auto p-6 space-y-8">
+      <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="text-center space-y-3 pt-4">
-          <h1 className="text-5xl flex items-center justify-center gap-3 text-primary display-font">
-            <ChefHat className="w-12 h-12" />
+        <div className="text-center space-y-2 pt-2 sm:pt-3">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl flex items-center justify-center gap-2 sm:gap-3 text-primary display-font">
+            <ChefHat className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12" />
             Frig'Oh
           </h1>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">
             Découvrez des recettes raffinées basées sur vos ingrédients
           </p>
         </div>
 
           {/* Search Bar */}
-        <div className="max-w-2xl mx-auto space-y-4">
-          <div className="flex gap-3">
+        <div className="max-w-2xl mx-auto space-y-3">
+          <div className="flex gap-2 sm:gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
               <Input
                 placeholder="Ajouter un ingrédient (ex: tomates, poulet...)"
                 value={inputValue}
@@ -149,12 +149,12 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
                   setShowSuggestions(false);
                 }}
                 onKeyPress={handleKeyPress}
-                className="pl-12 h-14 rounded-full bg-card border-border text-lg"
+                className="pl-9 sm:pl-12 h-11 sm:h-12 lg:h-14 rounded-full bg-card border-border text-sm sm:text-base"
               />
             </div>
             <Button 
               onClick={() => addIngredient()}
-              className="h-14 px-8 rounded-full bg-primary hover:bg-primary/90 text-black"
+              className="h-11 sm:h-12 lg:h-14 px-5 sm:px-6 lg:px-8 rounded-full bg-primary hover:bg-primary/90 text-black text-sm sm:text-base"
             >
               Ajouter
             </Button>
@@ -162,11 +162,11 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
 
           {/* Ingredient Suggestions */}
           {showSuggestions && (
-            <div className="bg-card border border-border rounded-2xl p-4 shadow-lg">
+            <div className="bg-card border border-border rounded-2xl p-3 sm:p-4 shadow-lg">
               {ingredientSuggestions.length > 0 ? (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <AlertCircle className="w-4 h-4" />
+                <div className="space-y-2 sm:space-y-3">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                    <AlertCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     <span>Ingrédient non reconnu. Vouliez-vous dire :</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -175,7 +175,8 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
                         key={index}
                         onClick={() => addSuggestedIngredient(suggestion)}
                         variant="outline"
-                        className="rounded-full border-primary/50 hover:bg-primary/10 hover:border-primary"
+                        size="sm"
+                        className="rounded-full border-primary/50 hover:bg-primary/10 hover:border-primary text-xs sm:text-sm"
                       >
                         {suggestion}
                       </Button>
@@ -185,15 +186,15 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
                     onClick={() => setShowSuggestions(false)}
                     variant="ghost"
                     size="sm"
-                    className="w-full text-muted-foreground hover:text-foreground"
+                    className="w-full text-muted-foreground hover:text-foreground text-xs"
                   >
                     Annuler
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm text-destructive">
-                    <AlertCircle className="w-4 h-4" />
+                <div className="space-y-2 sm:space-y-3">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-destructive">
+                    <AlertCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     <span>Cet ingrédient n'est pas reconnu dans notre base de données.</span>
                   </div>
                   <Button
@@ -203,7 +204,7 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
                     }}
                     variant="ghost"
                     size="sm"
-                    className="w-full text-muted-foreground hover:text-foreground"
+                    className="w-full text-muted-foreground hover:text-foreground text-xs"
                   >
                     Fermer
                   </Button>
@@ -234,40 +235,40 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-4 max-w-2xl mx-auto">
+        <div className="flex gap-3 sm:gap-4 max-w-2xl mx-auto">
           <Button 
             onClick={findRecipes}
             disabled={ingredients.length === 0}
-            className="flex-1 h-14 rounded-full bg-primary hover:bg-primary/90 text-black text-lg"
+            className="flex-1 h-11 sm:h-12 lg:h-14 rounded-full bg-primary hover:bg-primary/90 text-black text-sm sm:text-base"
             size="lg"
           >
-            <Search className="w-5 h-5 mr-2" />
+            <Search className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
             Trouver une recette
           </Button>
           <Button 
             onClick={generateAiRecipes}
             disabled={ingredients.length === 0}
             variant="outline"
-            className="flex-1 h-14 rounded-full border-primary/30 hover:bg-primary/10 text-lg"
+            className="flex-1 h-11 sm:h-12 lg:h-14 rounded-full border-primary/30 hover:bg-primary/10 text-sm sm:text-base"
             size="lg"
           >
-            <Sparkles className="w-5 h-5 mr-2" />
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
             Générer avec IA
           </Button>
         </div>
 
         {/* Results */}
         {suggestedRecipes.length > 0 && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-3xl display-font">
+              <h2 className="text-2xl sm:text-2xl lg:text-3xl display-font">
                 {showAiRecipes ? 'Recettes générées par IA' : 'Recettes suggérées'}
               </h2>
-              <Badge className="px-4 py-2 bg-primary/20 text-primary border-primary/30">
+              <Badge className="px-3 py-1 sm:px-4 sm:py-2 bg-primary/20 text-primary border-primary/30 text-xs sm:text-sm">
                 {suggestedRecipes.length} résultats
               </Badge>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
               {suggestedRecipes.map((recipe) => (
                 <RecipeCard
                   key={recipe.id}
@@ -286,13 +287,13 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
 
         {/* Empty State */}
         {suggestedRecipes.length === 0 && ingredients.length > 0 && (
-          <div className="text-center py-16 space-y-6">
-            <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-              <ChefHat className="w-12 h-12 text-primary" />
+          <div className="text-center py-8 sm:py-12 lg:py-16 space-y-4 sm:space-y-5">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+              <ChefHat className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-primary" />
             </div>
             <div>
-              <h3 className="text-2xl mb-2 display-font">Recherchez des recettes</h3>
-              <p className="text-muted-foreground text-lg">
+              <h3 className="text-xl sm:text-2xl mb-1.5 sm:mb-2 display-font">Recherchez des recettes</h3>
+              <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">
                 Cliquez sur "Trouver une recette" ou "Générer avec IA"
               </p>
             </div>
@@ -301,13 +302,13 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
 
         {/* Initial State */}
         {ingredients.length === 0 && (
-          <div className="text-center py-16 space-y-6">
-            <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-              <Search className="w-12 h-12 text-primary" />
+          <div className="text-center py-8 sm:py-12 lg:py-16 space-y-4 sm:space-y-5">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+              <Search className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-primary" />
             </div>
             <div>
-              <h3 className="text-2xl mb-2 display-font">Commencez votre aventure culinaire</h3>
-              <p className="text-muted-foreground text-lg">
+              <h3 className="text-xl sm:text-2xl mb-1.5 sm:mb-2 display-font">Commencez votre aventure culinaire</h3>
+              <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">
                 Saisissez les ingrédients que vous avez chez vous
               </p>
             </div>

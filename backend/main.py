@@ -12,9 +12,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 async def root():
     return {"message": "Bienvenue sur l'API Frig-oh"}
+
 
 @app.get("/health")
 async def health_check():
