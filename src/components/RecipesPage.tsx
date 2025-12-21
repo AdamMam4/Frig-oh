@@ -15,11 +15,13 @@ export function RecipesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [apiRecipes, setApiRecipes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     console.log("📄 RecipesPage: Chargement initial");
     loadRecipes();
+    loadFavorites();
   }, []);
 
   const loadRecipes = async () => {
@@ -48,6 +50,51 @@ export function RecipesPage() {
     } finally {
       setLoading(false);
       console.log("🏁 Fin du chargement des recettes");
+    }
+  };
+
+  const loadFavorites = async () => {
+    if (!apiService.isAuthenticated()) return;
+    try {
+      const ids = await apiService.getFavoriteIds();
+      setFavoriteIds(ids);
+    } catch (error) {
+      console.error("Erreur chargement favoris:", error);
+    }
+  };
+
+  const toggleFavorite = async (recipeId: string) => {
+    if (!apiService.isAuthenticated()) {
+      toast({
+        title: "Erreur",
+        description: "Vous devez être connecté pour ajouter des favoris",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      if (favoriteIds.includes(recipeId)) {
+        await apiService.removeFavorite(recipeId);
+        setFavoriteIds(favoriteIds.filter((id) => id !== recipeId));
+        toast({
+          title: "Succès",
+          description: "Recette retirée des favoris",
+        });
+      } else {
+        await apiService.addFavorite(recipeId);
+        setFavoriteIds([...favoriteIds, recipeId]);
+        toast({
+          title: "Succès",
+          description: "Recette ajoutée aux favoris",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de modifier les favoris",
+        variant: "destructive",
+      });
     }
   };
 
@@ -172,6 +219,8 @@ export function RecipesPage() {
                   image={recipe.image}
                   difficulty={recipe.difficulty}
                   time={recipe.time}
+                  isFavorite={favoriteIds.includes(recipe.id)}
+                  onFavoriteClick={() => toggleFavorite(recipe.id)}
                   onClick={() => handleRecipeClick(recipe)}
                 />
               ))}

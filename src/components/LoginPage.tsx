@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { ChefHat, Mail, Lock, User, ArrowRight, AlertCircle } from "lucide-react";
+import { ChefHat, Mail, Lock, User, ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { apiService } from "../services/api";
 import { Alert, AlertDescription } from "./ui/alert";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -18,6 +19,16 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // États pour le mot de passe oublié
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [resetToken, setResetToken] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [forgotStep, setForgotStep] = useState<"email" | "reset">("email");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState<string | null>(null);
+  const [forgotSuccess, setForgotSuccess] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +72,57 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     setEmail("");
     setPassword("");
     setName("");
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    setForgotError(null);
+    setForgotSuccess(null);
+
+    try {
+      if (forgotStep === "email") {
+        const response = await apiService.forgotPassword(forgotEmail);
+        if (response.email_sent) {
+          setForgotSuccess(
+            "Un code de réinitialisation a été envoyé à votre adresse email. Vérifiez votre boîte de réception.",
+          );
+        } else if (response.reset_code) {
+          // Mode dev : l'email n'est pas configuré, on affiche le code
+          setForgotSuccess(`Code de développement : ${response.reset_code}`);
+        } else {
+          setForgotSuccess("Si cet email existe, un code de réinitialisation a été envoyé.");
+        }
+        setForgotStep("reset");
+      } else {
+        await apiService.resetPassword(resetToken, newPassword);
+        setForgotSuccess(
+          "Mot de passe réinitialisé avec succès ! Vous pouvez maintenant vous connecter.",
+        );
+        setTimeout(() => {
+          setShowForgotPassword(false);
+          resetForgotPasswordState();
+        }, 2000);
+      }
+    } catch (err) {
+      setForgotError(err instanceof Error ? err.message : "Une erreur est survenue");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const resetForgotPasswordState = () => {
+    setForgotEmail("");
+    setResetToken("");
+    setNewPassword("");
+    setForgotStep("email");
+    setForgotError(null);
+    setForgotSuccess(null);
+  };
+
+  const openForgotPassword = () => {
+    resetForgotPasswordState();
+    setShowForgotPassword(true);
   };
 
   return (
@@ -156,6 +218,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                     <div className="flex justify-end">
                       <button
                         type="button"
+                        onClick={openForgotPassword}
                         className="text-xs sm:text-sm text-primary hover:underline"
                       >
                         Mot de passe oublié ?
@@ -343,7 +406,11 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
               {!isSignup && (
                 <div className="flex justify-end">
-                  <button type="button" className="text-xs sm:text-sm text-primary hover:underline">
+                  <button
+                    type="button"
+                    onClick={openForgotPassword}
+                    className="text-xs sm:text-sm text-primary hover:underline"
+                  >
                     Mot de passe oublié ?
                   </button>
                 </div>
@@ -399,6 +466,107 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           </div>
         </div>
       </div>
+
+      {/* Modal Mot de passe oublié */}
+      <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="display-font text-xl">
+              {forgotStep === "email" ? "Mot de passe oublié" : "Réinitialiser le mot de passe"}
+            </DialogTitle>
+            <DialogDescription>
+              {forgotStep === "email"
+                ? "Entrez votre email pour recevoir un code de réinitialisation"
+                : "Entrez le code reçu et votre nouveau mot de passe"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleForgotPassword} className="space-y-4">
+            {forgotStep === "email" ? (
+              <div className="space-y-1.5">
+                <label className="text-sm text-muted-foreground">Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    placeholder="chef@gourmet.fr"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-sm text-muted-foreground">Code de réinitialisation</label>
+                  <Input
+                    type="text"
+                    placeholder="Collez le code ici"
+                    value={resetToken}
+                    onChange={(e) => setResetToken(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm text-muted-foreground">Nouveau mot de passe</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="pl-10"
+                      required
+                      minLength={6}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {forgotError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{forgotError}</AlertDescription>
+              </Alert>
+            )}
+
+            {forgotSuccess && (
+              <Alert className="border-green-500/50 bg-green-500/10">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <AlertDescription className="text-green-500">{forgotSuccess}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="flex gap-2">
+              {forgotStep === "reset" && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setForgotStep("email")}
+                  className="flex-1"
+                >
+                  Retour
+                </Button>
+              )}
+              <Button
+                type="submit"
+                disabled={forgotLoading}
+                className="flex-1 bg-primary hover:bg-primary/90 text-black"
+              >
+                {forgotLoading
+                  ? "Chargement..."
+                  : forgotStep === "email"
+                    ? "Envoyer le code"
+                    : "Réinitialiser"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

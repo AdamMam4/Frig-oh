@@ -13,3 +13,5 @@ database = client[DATABASE_NAME]
 # Collections
 users_collection = database.users
 recipes_collection = database.recipes
+favorites_collection = database.favorites
+password_reset_collection = database.password_resets

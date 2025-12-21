@@ -13,6 +13,14 @@ export interface GeneratedRecipe {
   created_at?: string;
 }
 
+export interface UserStats {
+  email: string;
+  username: string;
+  total_recipes: number;
+  ai_generated_recipes: number;
+  favorites_count: number;
+}
+
 class ApiService {
   private getAuthToken(): string | null {
     return localStorage.getItem("access_token");
@@ -111,6 +119,178 @@ class ApiService {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || "Erreur lors de l'inscription");
+    }
+
+    return response.json();
+  }
+
+  async forgotPassword(
+    email: string,
+  ): Promise<{ message: string; email_sent: boolean; reset_code?: string }> {
+    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Erreur lors de la demande de réinitialisation");
+    }
+
+    return response.json();
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, new_password: newPassword }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Erreur lors de la réinitialisation du mot de passe");
+    }
+
+    return response.json();
+  }
+
+  async getUserStats(): Promise<UserStats> {
+    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+      method: "GET",
+      headers: this.getHeaders(),
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error("Vous devez être connecté");
+      }
+      const error = await response.json();
+      throw new Error(error.detail || "Erreur lors du chargement des statistiques");
+    }
+
+    return response.json();
+  }
+
+  // Favorites API
+  async addFavorite(recipeId: string): Promise<{ message: string; id: string }> {
+    const response = await fetch(`${API_BASE_URL}/favorites/${recipeId}`, {
+      method: "POST",
+      headers: this.getHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Erreur lors de l'ajout aux favoris");
+    }
+
+    return response.json();
+  }
+
+  async removeFavorite(recipeId: string): Promise<{ message: string }> {
+    const response = await fetch(`${API_BASE_URL}/favorites/${recipeId}`, {
+      method: "DELETE",
+      headers: this.getHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Erreur lors de la suppression des favoris");
+    }
+
+    return response.json();
+  }
+
+  async getFavorites(): Promise<GeneratedRecipe[]> {
+    const response = await fetch(`${API_BASE_URL}/favorites/`, {
+      method: "GET",
+      headers: this.getHeaders(),
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error("Vous devez être connecté pour voir vos favoris");
+      }
+      const error = await response.json();
+      throw new Error(error.detail || "Erreur lors du chargement des favoris");
+    }
+
+    return response.json();
+  }
+
+  async getFavoriteIds(): Promise<string[]> {
+    const response = await fetch(`${API_BASE_URL}/favorites/ids`, {
+      method: "GET",
+      headers: this.getHeaders(),
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    return data.favorite_ids;
+  }
+
+  async checkFavorite(recipeId: string): Promise<boolean> {
+    const response = await fetch(`${API_BASE_URL}/favorites/check/${recipeId}`, {
+      method: "GET",
+      headers: this.getHeaders(),
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json();
+    return data.is_favorite;
+  }
+
+  // Profile update methods
+  async updateUsername(newUsername: string): Promise<{ message: string; username: string }> {
+    const response = await fetch(`${API_BASE_URL}/auth/update-username`, {
+      method: "PUT",
+      headers: this.getHeaders(),
+      body: JSON.stringify({ new_username: newUsername }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Erreur lors de la mise à jour du nom d'utilisateur");
+    }
+
+    return response.json();
+  }
+
+  async requestPasswordChange(): Promise<{
+    message: string;
+    email_sent: boolean;
+    reset_code?: string;
+  }> {
+    const response = await fetch(`${API_BASE_URL}/auth/request-password-change`, {
+      method: "POST",
+      headers: this.getHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Erreur lors de la demande de changement de mot de passe");
+    }
+
+    return response.json();
+  }
+
+  async verifyPasswordChange(code: string, newPassword: string): Promise<{ message: string }> {
+    const response = await fetch(`${API_BASE_URL}/auth/verify-password-change`, {
+      method: "POST",
+      headers: this.getHeaders(),
+      body: JSON.stringify({ code, new_password: newPassword }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Erreur lors du changement de mot de passe");
     }
 
     return response.json();
