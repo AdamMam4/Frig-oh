@@ -75,7 +75,7 @@ export default function SaladThree({ className }: { className?: string }) {
 
       // lift the whole model so it visually centers with the surrounding text
       // raise by 0.15 to bring the bowl up towards center (size unchanged)
-      modelGroup.position.y = 0.30;
+      modelGroup.position.y = 0.50;
     }, undefined, (err) => {
       console.error('Failed to load GLB', err);
     });
@@ -140,7 +140,13 @@ export default function SaladThree({ className }: { className?: string }) {
     let frameId: number;
     const clock = new THREE.Clock();
     function animate() {
-      clock.getDelta();
+      const delta = clock.getDelta();
+      
+      // auto-rotate when not dragging
+      if (!isDragging) {
+        targetRotY += delta * 0.3; // gentle automatic rotation
+      }
+      
       // smoothly interpolate modelGroup rotation towards targets
       modelGroup.rotation.x += (targetRotX - modelGroup.rotation.x) * 0.08;
       modelGroup.rotation.y += (targetRotY - modelGroup.rotation.y) * 0.08;
