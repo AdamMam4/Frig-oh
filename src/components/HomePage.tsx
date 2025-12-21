@@ -1,12 +1,14 @@
-import { useState } from 'react';
-import { Input } from './ui/input';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
-import { Search, X, Sparkles, ChefHat, AlertCircle } from 'lucide-react';
-import { RecipeCard } from './RecipeCard';
-import { RecipeDetail } from './RecipeDetail';
-import { recipes, Recipe, calculateMatchPercentage } from '../data/recipes';
-import { isValidIngredient, findSimilarIngredients } from '../data/ingredients';
+import { useState } from "react";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
+import { Search, X, Sparkles, ChefHat, AlertCircle } from "lucide-react";
+import { RecipeCard } from "./RecipeCard";
+import { RecipeDetail } from "./RecipeDetail";
+import { recipes, Recipe, calculateMatchPercentage } from "../data/recipes";
+import { isValidIngredient, findSimilarIngredients } from "../data/ingredients";
+import { apiService } from "../services/api";
+import { Alert, AlertDescription } from "./ui/alert";
 
 interface HomePageProps {
   ingredients: string[];
@@ -14,18 +16,24 @@ interface HomePageProps {
 }
 
 export function HomePage({ ingredients, setIngredients }: HomePageProps) {
-  const [inputValue, setInputValue] = useState('');
-  const [suggestedRecipes, setSuggestedRecipes] = useState<(Recipe & { matchPercentage?: number })[]>([]);
+  const [inputValue, setInputValue] = useState("");
+  const [suggestedRecipes, setSuggestedRecipes] = useState<
+    (Recipe & { matchPercentage?: number })[]
+  >([]);
   const [showAiRecipes, setShowAiRecipes] = useState(false);
-  const [selectedRecipe, setSelectedRecipe] = useState<(Recipe & { matchPercentage?: number }) | null>(null);
+  const [selectedRecipe, setSelectedRecipe] = useState<
+    (Recipe & { matchPercentage?: number }) | null
+  >(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [ingredientSuggestions, setIngredientSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const addIngredient = (ingredientToAdd?: string) => {
     const ingredient = ingredientToAdd || inputValue;
     const trimmedIngredient = ingredient.trim().toLowerCase();
-    
+
     // Vérifier si l'ingrédient n'est pas vide et n'est pas déjà dans la liste
     if (!trimmedIngredient || ingredients.includes(trimmedIngredient)) {
       return;
@@ -34,7 +42,7 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
     // Vérifier si l'ingrédient est valide
     if (isValidIngredient(trimmedIngredient)) {
       setIngredients([...ingredients, trimmedIngredient]);
-      setInputValue('');
+      setInputValue("");
       setShowSuggestions(false);
       setIngredientSuggestions([]);
     } else {
@@ -55,66 +63,69 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
   };
 
   const removeIngredient = (ingredient: string) => {
-    setIngredients(ingredients.filter(i => i !== ingredient));
+    setIngredients(ingredients.filter((i) => i !== ingredient));
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       addIngredient();
     }
   };
 
   const findRecipes = () => {
-    const recipesWithMatch = recipes.map(recipe => {
+    const recipesWithMatch = recipes.map((recipe) => {
       const matchPercentage = calculateMatchPercentage(recipe, ingredients);
       return { ...recipe, matchPercentage };
     });
 
     const filtered = recipesWithMatch
-      .filter(recipe => recipe.matchPercentage > 0)
+      .filter((recipe) => recipe.matchPercentage > 0)
       .sort((a, b) => b.matchPercentage - a.matchPercentage);
 
     setSuggestedRecipes(filtered);
     setShowAiRecipes(false);
   };
 
-  const generateAiRecipes = () => {
-    const aiRecipes: Recipe[] = [
-      {
-        id: 'ai-1',
-        name: `Plat Créatif avec ${ingredients.slice(0, 2).join(' et ')}`,
-        image: recipes[0].image,
-        difficulty: 'Moyen',
-        time: '30 min',
-        servings: 2,
-        ingredients: ingredients.map(ing => ({ name: ing, quantity: 'selon goût' })),
-        instructions: [
-          'Préparer tous les ingrédients.',
-          'Suivre votre intuition culinaire pour créer un plat unique.',
-          'Assaisonner selon votre goût.',
-          'Servir chaud.'
-        ],
-        isAiGenerated: true
-      },
-      {
-        id: 'ai-2',
-        name: `Recette Fusion ${ingredients[0] || 'surprise'}`,
-        image: recipes[1].image,
-        difficulty: 'Facile',
-        time: '20 min',
-        servings: 2,
-        ingredients: ingredients.map(ing => ({ name: ing, quantity: 'selon goût' })),
-        instructions: [
-          'Combiner les ingrédients de manière créative.',
-          'Cuisiner avec amour et passion.',
-          'Ajuster les assaisonnements.',
-          'Déguster votre création unique.'
-        ],
-        isAiGenerated: true
-      }
-    ];
-    setSuggestedRecipes(aiRecipes);
-    setShowAiRecipes(true);
+  const generateAiRecipes = async () => {
+    if (ingredients.length === 0) {
+      setError("Veuillez ajouter au moins un ingrédient");
+      return;
+    }
+
+    setIsGenerating(true);
+    setError(null);
+
+    try {
+      const generatedRecipe = await apiService.generateRecipe(ingredients);
+
+      // Convertir la recette générée au format Recipe
+      const aiRecipe: Recipe = {
+        id: generatedRecipe.id || `ai-${Date.now()}`,
+        name: generatedRecipe.title,
+        image: recipes[0]?.image || "/placeholder-recipe.jpg", // Image par défaut
+        difficulty: "Moyen",
+        time: `${generatedRecipe.cooking_time} min`,
+        servings: generatedRecipe.servings,
+        ingredients: generatedRecipe.ingredients.map((ing) => ({
+          name: ing,
+          quantity: "selon la recette",
+        })),
+        instructions: generatedRecipe.instructions,
+        isAiGenerated: true,
+      };
+
+      setSuggestedRecipes([aiRecipe]);
+      setShowAiRecipes(true);
+    } catch (err) {
+      console.error("Erreur lors de la génération de la recette:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Impossible de générer la recette. Veuillez réessayer.",
+      );
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleRecipeClick = (recipe: Recipe & { matchPercentage?: number }) => {
@@ -136,7 +147,7 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
           </p>
         </div>
 
-          {/* Search Bar */}
+        {/* Search Bar */}
         <div className="max-w-2xl mx-auto space-y-3">
           <div className="flex gap-2 sm:gap-3">
             <div className="relative flex-1">
@@ -152,7 +163,7 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
                 className="pl-9 sm:pl-12 h-11 sm:h-12 lg:h-14 rounded-full bg-card border-border text-sm sm:text-base"
               />
             </div>
-            <Button 
+            <Button
               onClick={() => addIngredient()}
               className="h-11 sm:h-12 lg:h-14 px-5 sm:px-6 lg:px-8 rounded-full bg-primary hover:bg-primary/90 text-black text-sm sm:text-base"
             >
@@ -200,7 +211,7 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
                   <Button
                     onClick={() => {
                       setShowSuggestions(false);
-                      setInputValue('');
+                      setInputValue("");
                     }}
                     variant="ghost"
                     size="sm"
@@ -217,8 +228,8 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
           {ingredients.length > 0 && (
             <div className="flex flex-wrap gap-2 justify-center">
               {ingredients.map((ingredient, index) => (
-                <Badge 
-                  key={index} 
+                <Badge
+                  key={index}
                   className="px-4 py-2 text-sm bg-card border border-primary/30 text-foreground hover:bg-primary/10"
                 >
                   {ingredient}
@@ -236,7 +247,7 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
 
         {/* Action Buttons */}
         <div className="flex gap-3 sm:gap-4 max-w-2xl mx-auto">
-          <Button 
+          <Button
             onClick={findRecipes}
             disabled={ingredients.length === 0}
             className="flex-1 h-11 sm:h-12 lg:h-14 rounded-full bg-primary hover:bg-primary/90 text-black text-sm sm:text-base"
@@ -245,24 +256,32 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
             <Search className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
             Trouver une recette
           </Button>
-          <Button 
+          <Button
             onClick={generateAiRecipes}
-            disabled={ingredients.length === 0}
+            disabled={ingredients.length === 0 || isGenerating}
             variant="outline"
             className="flex-1 h-11 sm:h-12 lg:h-14 rounded-full border-primary/30 hover:bg-primary/10 text-sm sm:text-base"
             size="lg"
           >
             <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-            Générer avec IA
+            {isGenerating ? "Génération en cours..." : "Générer avec IA"}
           </Button>
         </div>
+
+        {/* Error Alert */}
+        {error && (
+          <Alert variant="destructive" className="max-w-2xl mx-auto">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
         {/* Results */}
         {suggestedRecipes.length > 0 && (
           <div className="space-y-4 sm:space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl sm:text-2xl lg:text-3xl display-font">
-                {showAiRecipes ? 'Recettes générées par IA' : 'Recettes suggérées'}
+                {showAiRecipes ? "Recettes générées par IA" : "Recettes suggérées"}
               </h2>
               <Badge className="px-3 py-1 sm:px-4 sm:py-2 bg-primary/20 text-primary border-primary/30 text-xs sm:text-sm">
                 {suggestedRecipes.length} résultats
@@ -292,7 +311,9 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
               <ChefHat className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-primary" />
             </div>
             <div>
-              <h3 className="text-xl sm:text-2xl mb-1.5 sm:mb-2 display-font">Recherchez des recettes</h3>
+              <h3 className="text-xl sm:text-2xl mb-1.5 sm:mb-2 display-font">
+                Recherchez des recettes
+              </h3>
               <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">
                 Cliquez sur "Trouver une recette" ou "Générer avec IA"
               </p>
@@ -307,7 +328,9 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
               <Search className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-primary" />
             </div>
             <div>
-              <h3 className="text-xl sm:text-2xl mb-1.5 sm:mb-2 display-font">Commencez votre aventure culinaire</h3>
+              <h3 className="text-xl sm:text-2xl mb-1.5 sm:mb-2 display-font">
+                Commencez votre aventure culinaire
+              </h3>
               <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">
                 Saisissez les ingrédients que vous avez chez vous
               </p>

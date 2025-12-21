@@ -6,24 +6,33 @@ import { IngredientsPage } from './components/IngredientsPage';
 import { RecipesPage } from './components/RecipesPage';
 import { ProfilePage } from './components/ProfilePage';
 import { LoginPage } from './components/LoginPage';
+import { apiService } from "./services/api";
 import IntroVideo from './components/IntroVideo';
 
-type Page = 'home' | 'ingredients' | 'recipes' | 'profile';
+
+type Page = "home" | "ingredients" | "recipes" | "profile";
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('home');
+  const [currentPage, setCurrentPage] = useState<Page>("home");
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   // utilise sessionStorage : l'intro rejoue à chaque nouvelle session navigateur
   const [showIntro, setShowIntro] = useState(() => !sessionStorage.getItem('introPlayed'));
+
+  // Vérifier si l'utilisateur est déjà connecté au chargement
+  useEffect(() => {
+    const isAuthenticated = apiService.isAuthenticated();
+    setIsLoggedIn(isAuthenticated);
+  }, []);
 
   const handleLogin = () => {
     setIsLoggedIn(true);
   };
 
   const handleLogout = () => {
+    apiService.logout();
     setIsLoggedIn(false);
-    setCurrentPage('home'); // Réinitialiser la page à l'accueil
+    setCurrentPage("home"); // Réinitialiser la page à l'accueil
   };
 
   const handleIntroComplete = () => {
@@ -47,13 +56,19 @@ function App() {
 
   const renderPage = () => {
     switch (currentPage) {
-      case 'home':
+      case "home":
         return <HomePage ingredients={ingredients} setIngredients={setIngredients} />;
-      case 'ingredients':
-        return <IngredientsPage ingredients={ingredients} setIngredients={setIngredients} />;
-      case 'recipes':
+      case "ingredients":
+        return (
+          <IngredientsPage
+            ingredients={ingredients}
+            setIngredients={setIngredients}
+            onNavigate={(page) => setCurrentPage(page as Page)}
+          />
+        );
+      case "recipes":
         return <RecipesPage />;
-      case 'profile':
+      case "profile":
         return <ProfilePage onLogout={handleLogout} />;
       default:
         return <HomePage ingredients={ingredients} setIngredients={setIngredients} />;
@@ -61,10 +76,10 @@ function App() {
   };
 
   const navItems = [
-    { id: 'home' as Page, icon: Home, label: 'Accueil' },
-    { id: 'ingredients' as Page, icon: Package, label: 'Ingrédients' },
-    { id: 'recipes' as Page, icon: BookOpen, label: 'Recettes' },
-    { id: 'profile' as Page, icon: User, label: 'Profil' }
+    { id: "home" as Page, icon: Home, label: "Accueil" },
+    { id: "ingredients" as Page, icon: Package, label: "Ingrédients" },
+    { id: "recipes" as Page, icon: BookOpen, label: "Recettes" },
+    { id: "profile" as Page, icon: User, label: "Profil" },
   ];
 
   return (
@@ -85,12 +100,12 @@ function App() {
                     onClick={() => setCurrentPage(id)}
                     className={`flex flex-col items-center justify-center gap-1.5 flex-1 h-full transition-all ${
                       isActive
-                        ? 'text-primary scale-105'
-                        : 'text-muted-foreground hover:text-primary/70'
+                        ? "text-primary scale-105"
+                        : "text-muted-foreground hover:text-primary/70"
                     }`}
                   >
-                    <Icon className={`w-6 h-6 ${isActive ? 'stroke-[2.5]' : ''}`} />
-                    <span className={`text-xs ${isActive ? 'font-semibold' : ''}`}>{label}</span>
+                    <Icon className={`w-6 h-6 ${isActive ? "stroke-[2.5]" : ""}`} />
+                    <span className={`text-xs ${isActive ? "font-semibold" : ""}`}>{label}</span>
                   </button>
                 );
               })}
