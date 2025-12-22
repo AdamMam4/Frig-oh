@@ -4,7 +4,6 @@ import { Search, Heart, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Recipe, recipes as staticRecipes } from "../data/recipes";
 import { apiService } from "../services/api";
-import { useToast } from "../hooks/use-toast";
 
 interface FavoritesPageProps {
   onBack?: () => void;
@@ -16,7 +15,6 @@ export function FavoritesPage({ onBack }: FavoritesPageProps) {
   const [apiFavorites, setApiFavorites] = useState<any[]>([]);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     loadFavorites();
@@ -39,11 +37,7 @@ export function FavoritesPage({ onBack }: FavoritesPageProps) {
       setApiFavorites(favs);
     } catch (error: any) {
       console.error("Erreur lors du chargement des favoris:", error);
-      toast({
-        title: "Erreur",
-        description: error.message || "Impossible de charger vos favoris",
-        variant: "destructive",
-      });
+      console.error("Impossible de charger vos favoris:", error.message);
     } finally {
       setLoading(false);
     }
@@ -54,16 +48,9 @@ export function FavoritesPage({ onBack }: FavoritesPageProps) {
       await apiService.removeFavorite(recipeId);
       setFavoriteIds(favoriteIds.filter((id) => id !== recipeId));
       setApiFavorites(apiFavorites.filter((f) => (f.id || f._id) !== recipeId));
-      toast({
-        title: "Succès",
-        description: "Recette retirée des favoris",
-      });
+      console.log("✅ Recette retirée des favoris");
     } catch (error: any) {
-      toast({
-        title: "Erreur",
-        description: error.message || "Impossible de retirer des favoris",
-        variant: "destructive",
-      });
+      console.error("❌ Impossible de retirer des favoris:", error.message);
     }
   };
 

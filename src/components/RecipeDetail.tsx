@@ -18,10 +18,14 @@ export function RecipeDetail({ recipe, open, onOpenChange, matchPercentage }: Re
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getDifficultyColor = (level: string) => {
     switch (level) {
-      case 'Facile': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-      case 'Moyen': return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
-      case 'Difficile': return 'bg-rose-500/20 text-rose-400 border-rose-500/30';
-      default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+      case "Facile":
+        return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+      case "Moyen":
+        return "bg-amber-500/20 text-amber-400 border-amber-500/30";
+      case "Difficile":
+        return "bg-rose-500/20 text-rose-400 border-rose-500/30";
+      default:
+        return "bg-gray-500/20 text-gray-400 border-gray-500/30";
     }
   };
 
@@ -42,7 +46,7 @@ export function RecipeDetail({ recipe, open, onOpenChange, matchPercentage }: Re
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-          
+
           {recipe.isAiGenerated && (
             <div className="absolute top-1 right-1 sm:top-4 sm:right-4">
               <Badge className="bg-purple-500/90 text-white backdrop-blur-sm border-0 shadow-lg text-[10px] sm:text-sm px-1.5 py-0.5 sm:px-2.5 sm:py-0.5">
