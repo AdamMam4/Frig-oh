@@ -7,25 +7,27 @@
 @layer base {
   :root {
     --font-size: 16px;
-    --background: 0 0% 100%;
-    --foreground: 0 0% 10%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
-    --primary: 45 85% 53%;
-    --primary-foreground: 0 0% 4%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 10%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 240 4% 46%;
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 10%;
-    --destructive: 348 83% 47%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 0% / 0.1;
-    --input: 0 0% 0% / 0;
-    --ring: 45 85% 53%;
+    --background: 240 10% 96%; /* Fond très clair neutre */
+    --foreground: 210 15% 20%; /* Gris-bleu foncé */
+    --card: 0 0% 99%; /* Blanc très clair */
+    --card-foreground: 210 15% 20%; /* Gris-bleu foncé */
+    --popover: 0 0% 99%; /* Blanc très clair */
+    --popover-foreground: 210 15% 20%; /* Gris-bleu foncé */
+    --primary: 48 85% 60%; /* Jaune doré */
+    --primary-foreground: 0 0% 10%; /* Noir */
+    --secondary: 35 80% 70%; /* Orange doux */
+    --secondary-foreground: 0 0% 10%; /* Noir */
+    --tertiary: 210 60% 75%; /* Bleu ciel */
+    --tertiary-foreground: 210 20% 25%; /* Bleu foncé */
+    --muted: 240 5% 90%;
+    --muted-foreground: 210 10% 45%;
+    --accent: 240 5% 90%;
+    --accent-foreground: 210 15% 20%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5% 85%;
+    --input: 240 5% 85%;
+    --ring: 48 85% 60%; /* Jaune doré */
     --radius: 1rem;
   }
 
@@ -44,6 +46,8 @@
     --muted-foreground: 0 0% 61%;
     --accent: 210 17% 18%;
     --accent-foreground: 0 0% 97%;
+  --tertiary: 210 30% 24%; /* Bleu foncé pour le mode sombre */
+  --tertiary-foreground: 0 0% 97%;
     --destructive: 0 63% 51%;
     --destructive-foreground: 0 0% 100%;
     --border: 45 85% 53% / 0.15;

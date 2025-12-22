@@ -60,17 +60,24 @@ class FakeCollection:
     async def update_one(self, filter_q, update_q):
         doc = await self.find_one(filter_q)
         if not doc:
-            class R: modified_count = 0
+
+            class R:
+                modified_count = 0
+
             return R()
         # apply $set
         if "$set" in update_q:
             for k, v in update_q["$set"].items():
                 doc[k] = v
-        class R: modified_count = 1
+
+        class R:
+            modified_count = 1
+
         return R()
 
     async def delete_one(self, filter_q):
         doc = await self.find_one(filter_q)
+
         class R:
             def __init__(self, n):
                 self.deleted_count = n
@@ -117,7 +124,9 @@ def test_generate_and_save(monkeypatch):
 
     # Override auth dependency to return our fake user dict
     fake_user = {"_id": user_id, "email": "u@test", "username": "u1"}
-    app.dependency_overrides[recipes_module.auth_service.get_current_user] = lambda: fake_user
+    app.dependency_overrides[recipes_module.auth_service.get_current_user] = (
+        lambda: fake_user
+    )
 
     client = TestClient(app)
 

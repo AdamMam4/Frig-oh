@@ -1,24 +1,40 @@
-import google.generativeai as genai
-from typing import List, Dict
 import os
 import json
+import re
+from typing import List, Dict
 from dotenv import load_dotenv
 from PIL import Image
 import io
 
 load_dotenv()
 
+try:
+    import google.generativeai as genai
+except Exception:
+    genai = None
+
+
+def _strip_code_fences(text: str) -> str:
+    # remove ```json ... ``` and ``` ... ``` fences
+    return re.sub(r"```(?:json)?\s*(.*?)```", r"\1", text, flags=re.DOTALL)
+
+
 class AiService:
     """Service for AI-powered recipe and ingredient analysis using Google Gemini."""
     
     def __init__(self):
-        api_key = os.getenv("GEMINI_API_KEY")
-        if not api_key:
-            raise ValueError("GEMINI_API_KEY not found in environment variables")
-        genai.configure(api_key=api_key)
-        # Using Gemini 1.5 Flash: stable, free tier available, supports both text and vision
-        # Both text and vision use the same model for consistency and stability
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        self.api_key = os.getenv("GEMINI_API_KEY")
+        self.model = None
+        if genai is not None and self.api_key:
+            try:
+                genai.configure(api_key=self.api_key)
+                # Using gemini-1.5-flash for stability (photo features tested with this version)
+                model_name = os.getenv("GEMINI_MODEL", "models/gemini-1.5-flash")
+                Model = getattr(genai, 'GenerativeModel', None)
+                if Model is not None:
+                    self.model = Model(model_name)
+            except Exception:
+                self.model = None
 
     async def analyze_ingredients_from_image(self, image_data: bytes) -> List[str]:
         """
@@ -31,8 +47,11 @@ class AiService:
             List of ingredient names detected in the image
             
         Raises:
-            Exception: If image analysis fails
+            Exception: If image analysis fails or Gemini is not available
         """
+        if not self.model:
+            raise Exception("Gemini AI not available. Please configure GEMINI_API_KEY.")
+        
         try:
             image = Image.open(io.BytesIO(image_data))
             
@@ -43,16 +62,29 @@ class AiService:
             
             Only include actual food ingredients, not prepared dishes or cookware."""
             
-            response = self.model.generate_content([prompt, image])
-            text = response.text.strip()
+            gen_fn = getattr(self.model, 'generate_content_async', None)
+            if gen_fn is not None:
+                response = await gen_fn([prompt, image])
+            else:
+                response = await self.model.generate_content([prompt, image])
             
-            # Remove markdown code blocks if present
-            if text.startswith("```json"):
-                text = text.replace("```json", "").replace("```", "").strip()
-            elif text.startswith("```"):
-                text = text.replace("```", "").strip()
+            text = None
+            if hasattr(response, 'text'):
+                try:
+                    text = response.text
+                except Exception:
+                    text = None
             
-            ingredients = json.loads(text)
+            if not text:
+                raise Exception("No text response from Gemini")
+            
+            cleaned = _strip_code_fences(text).strip()
+            
+            # Try to extract JSON array
+            m = re.search(r"\[.*\]", cleaned, flags=re.DOTALL)
+            json_text = m.group(0) if m else cleaned
+            
+            ingredients = json.loads(json_text)
             
             if not isinstance(ingredients, list):
                 raise ValueError("AI response is not a list")
@@ -66,42 +98,137 @@ class AiService:
 
     async def generate_recipe(self, ingredients: List[str]) -> Dict:
         """
-        Generate a recipe using the provided ingredients.
-        
-        Args:
-            ingredients: List of ingredient names
-            
-        Returns:
-            Dictionary containing recipe details (title, ingredients, instructions, etc.)
-            
-        Raises:
-            Exception: If recipe generation fails
+        Generate a recipe using Gemini if available, otherwise return a deterministic
+        fallback recipe so the endpoint works for local development without keys.
         """
-        prompt = f"""Create a recipe using these ingredients: {', '.join(ingredients)}
-        Please provide the response in the following JSON format:
-        {{
-            "title": "Recipe Name",
-            "ingredients": ["ingredient 1", "ingredient 2", ...],
-            "instructions": ["step 1", "step 2", ...],
-            "cooking_time": time_in_minutes,
-            "servings": number_of_servings
-        }}
-        Make sure the recipe is practical and detailed."""
+        def fallback(ings: List[str]) -> Dict:
+            print("⚠️ FALLBACK: Utilisation du fallback au lieu de Gemini AI")
+            
+            # Templates de recettes variés selon les ingrédients
+            templates = {
+                'poulet': {
+                    'title': 'Poulet rôti aux herbes',
+                    'base_instructions': [
+                        "Préchauffer le four à 180°C.",
+                        "Assaisonner le poulet avec sel, poivre et herbes.",
+                        "Ajouter {} autour du poulet.",
+                        "Enfourner 45-60 minutes en arrosant régulièrement.",
+                        "Vérifier la cuisson et laisser reposer 10 minutes avant de servir."
+                    ],
+                    'time': 60,
+                    'servings': 4
+                },
+                'poisson': {
+                    'title': 'Poisson en papillote',
+                    'base_instructions': [
+                        "Préparer du papier sulfurisé ou aluminium.",
+                        "Disposer le poisson au centre avec {}.",
+                        "Fermer hermétiquement la papillote.",
+                        "Cuire au four à 200°C pendant 15-20 minutes.",
+                        "Servir aussitôt avec le jus de cuisson."
+                    ],
+                    'time': 25,
+                    'servings': 2
+                },
+                'pâtes': {
+                    'title': 'Pâtes crémeuses',
+                    'base_instructions': [
+                        "Cuire les pâtes dans l'eau bouillante salée selon les instructions.",
+                        "Pendant ce temps, faire revenir {} dans une poêle.",
+                        "Ajouter de la crème fraîche et laisser réduire.",
+                        "Égoutter les pâtes et les mélanger à la sauce.",
+                        "Servir chaud avec du parmesan râpé."
+                    ],
+                    'time': 20,
+                    'servings': 3
+                },
+                'default': {
+                    'title': f"Plat maison aux {ings[0] if ings else 'légumes'}",
+                    'base_instructions': [
+                        f"Préparer et laver tous les ingrédients: {', '.join(ings[:3])}.",
+                        "Faire chauffer un filet d'huile d'olive dans une poêle ou casserole.",
+                        "Faire revenir les ingrédients 5-7 minutes en remuant.",
+                        "Assaisonner avec sel, poivre et épices au choix.",
+                        "Laisser mijoter 15-20 minutes à feu doux.",
+                        "Rectifier l'assaisonnement et servir chaud."
+                    ],
+                    'time': 30,
+                    'servings': 2
+                }
+            }
+            
+            # Détection du type de recette
+            ings_lower = [i.lower() for i in ings]
+            template = templates['default']
+            
+            for key in ['poulet', 'poisson', 'pâtes', 'pasta', 'spaghetti']:
+                if any(key in ing for ing in ings_lower):
+                    if key in templates:
+                        template = templates[key]
+                    elif key in ['pasta', 'spaghetti']:
+                        template = templates['pâtes']
+                    break
+            
+            # Construire les instructions avec les ingrédients
+            other_ings = [i for i in ings[1:] if i.lower() not in template['title'].lower()]
+            ing_text = ', '.join(other_ings[:3]) if other_ings else 'les autres ingrédients'
+            
+            instructions = [
+                instr.format(ing_text) if '{}' in instr else instr 
+                for instr in template['base_instructions']
+            ]
+            
+            return {
+                "title": template['title'],
+                "ingredients": ings,
+                "instructions": instructions,
+                "cooking_time": template['time'],
+                "servings": template['servings']
+            }
+
+        if not self.model:
+            print(f"❌ GEMINI NON DISPONIBLE: api_key={'SET' if self.api_key else 'MISSING'}, model={self.model}")
+            return fallback(ingredients)
+        
+        print(f"✅ GEMINI ACTIF: Génération avec {len(ingredients)} ingrédients: {ingredients}")
+
+        prompt = f"Create a recipe using these ingredients: {', '.join(ingredients)}\nProvide the result as JSON with keys: title, ingredients (list), instructions (list), cooking_time (int), servings (int)."
 
         try:
-            response = self.model.generate_content(prompt)
-            text = response.text.strip()
-            
-            # Remove markdown code blocks if present
-            if text.startswith("```json"):
-                text = text.replace("```json", "").replace("```", "").strip()
-            elif text.startswith("```"):
-                text = text.replace("```", "").strip()
-                
-            recipe_dict = json.loads(text)
-            return recipe_dict
-            
-        except json.JSONDecodeError as e:
-            raise Exception(f"Failed to parse recipe response: {str(e)}")
+            gen_fn = getattr(self.model, 'generate_content_async', None)
+            if gen_fn is not None:
+                resp = await gen_fn(prompt)
+            else:
+                resp = await self.model.generate_content(prompt)
+
+            text = None
+            if hasattr(resp, 'text'):
+                try:
+                    text = resp.text
+                except Exception:
+                    text = None
+            if not text and hasattr(resp, 'parts'):
+                try:
+                    text = "\n".join(p.text for p in resp.parts if getattr(p, 'text', None))
+                except Exception:
+                    text = None
+
+            if not text and isinstance(resp, str):
+                text = resp
+
+            if not text:
+                return fallback(ingredients)
+
+            cleaned = _strip_code_fences(text).strip()
+            m = re.search(r"\{.*\}", cleaned, flags=re.DOTALL)
+            json_text = m.group(0) if m else cleaned
+
+            recipe = json.loads(json_text)
+            if not all(k in recipe for k in ("title", "ingredients", "instructions", "cooking_time", "servings")):
+                print("⚠️ GEMINI: Clés manquantes dans la réponse, utilisation du fallback")
+                return fallback(ingredients)
+            print(f"✅ GEMINI: Recette générée avec succès - {recipe['title']}")
+            return recipe
         except Exception as e:
-            raise Exception(f"Failed to generate recipe: {str(e)}")
+            print(f"❌ GEMINI ERREUR: {type(e).__name__}: {str(e)}")
+            return fallback(ingredients)

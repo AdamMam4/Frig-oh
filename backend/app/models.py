@@ -1,50 +1,72 @@
-from pydantic import BaseModel, Field, field_validator
-from typing import Optional, List, Any
+from pydantic import BaseModel, Field
+from typing import Optional, List
 from datetime import datetime
 from bson import ObjectId
 
-class PyObjectId(str):
+
+class PyObjectId(ObjectId):
     @classmethod
-    def __get_pydantic_core_schema__(cls, _source_type: Any, _handler):
-        from pydantic_core import core_schema
-        return core_schema.json_or_python_schema(
-            json_schema=core_schema.str_schema(),
-            python_schema=core_schema.union_schema([
-                core_schema.is_instance_schema(ObjectId),
-                core_schema.chain_schema([
-                    core_schema.str_schema(),
-                    core_schema.no_info_plain_validator_function(cls.validate),
-                ])
-            ]),
-            serialization=core_schema.plain_serializer_function_ser_schema(
-                lambda x: str(x)
-            ),
-        )
+    def __get_validators__(cls):
+        yield cls.validate
 
     @classmethod
-    def validate(cls, v):
+    def validate(cls, v, *args, **kwargs):
+        # Accept extra args/kwargs for compatibility with different pydantic versions
         if isinstance(v, ObjectId):
             return v
-        if ObjectId.is_valid(v):
-            return ObjectId(v)
-        raise ValueError("Invalid ObjectId")
+        if not ObjectId.is_valid(v):
+            raise ValueError("Invalid ObjectId")
+        return ObjectId(v)
+
 
 class UserBase(BaseModel):
     email: str = Field(..., example="user@example.com")
     username: str = Field(..., min_length=3, max_length=50, example="johndoe")
 
+
 class UserCreate(UserBase):
     password: str = Field(..., min_length=6, example="strongpassword123")
 
+
+class LoginRequest(BaseModel):
+    email: str = Field(..., example="user@example.com")
+    password: str = Field(..., min_length=6, example="strongpassword123")
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str = Field(..., example="user@example.com")
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(..., example="reset_token_here")
+    new_password: str = Field(..., min_length=6, example="newstrongpassword123")
+
+
+class UpdateUsernameRequest(BaseModel):
+    new_username: str = Field(..., min_length=3, max_length=50, example="newusername")
+
+
+class ChangePasswordRequest(BaseModel):
+    """Request to initiate password change (sends verification code by email)"""
+    pass
+
+
+class VerifyPasswordChangeRequest(BaseModel):
+    """Verify code and change password"""
+    code: str = Field(..., example="123456")
+    new_password: str = Field(..., min_length=6, example="newstrongpassword123")
+
+
 class UserInDB(UserBase):
-    id: Optional[PyObjectId] = Field(default=None, alias="_id")
+    # Use string representation for OpenAPI friendliness
+    id: str = Field(default_factory=lambda: str(PyObjectId()), alias="_id")
     hashed_password: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Config:
         json_encoders = {ObjectId: str}
         populate_by_name = True
-        arbitrary_types_allowed = True
+
 
 class RecipeBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=100)
@@ -53,17 +75,37 @@ class RecipeBase(BaseModel):
     cooking_time: int = Field(..., gt=0, description="Cooking time in minutes")
     servings: int = Field(..., gt=0)
 
+
 class RecipeCreate(RecipeBase):
     pass
 
+
 class Recipe(RecipeBase):
-    id: Optional[PyObjectId] = Field(default=None, alias="_id")
-    user_id: PyObjectId
+    # Expose _id and user_id as strings in API schemas to avoid pydantic JSON schema issues
+    id: str = Field(default_factory=lambda: str(PyObjectId()), alias="_id")
+    user_id: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     is_ai_generated: bool = Field(default=False)
 
     class Config:
         json_encoders = {ObjectId: str}
         populate_by_name = True
-        arbitrary_types_allowed = True
+
+
+class Favorite(BaseModel):
+    id: str = Field(default_factory=lambda: str(PyObjectId()), alias="_id")
+    user_id: str
+    recipe_id: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    class Config:
+        json_encoders = {ObjectId: str}
         populate_by_name = True
+
+
+class UserStats(BaseModel):
+    email: str
+    username: str
+    total_recipes: int
+    ai_generated_recipes: int
+    favorites_count: int
