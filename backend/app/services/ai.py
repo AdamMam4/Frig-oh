@@ -31,9 +31,7 @@ class AiService:
                 # Using gemini-2.5-flash - confirmed available from list_models()
                 # Supports generateContent which we need for image analysis
                 self.model = genai.GenerativeModel("models/gemini-2.5-flash")
-                print(f"✅ AiService initialized with models/gemini-2.5-flash")
             except Exception as e:
-                print(f"❌ AiService initialization error: {e}")
                 self.model = None
 
     async def analyze_ingredients_from_image(self, image_data: bytes) -> List[str]:
@@ -49,10 +47,6 @@ class AiService:
         Raises:
             Exception: If image analysis fails or Gemini is not available
         """
-        print(f"🔍 analyze_ingredients_from_image called")
-        print(f"🔍 Model available: {self.model is not None}")
-        print(f"🔍 Model name: {self.model._model_name if self.model and hasattr(self.model, '_model_name') else 'N/A'}")
-        
         if not self.model:
             raise Exception("Gemini AI not available. Please configure GEMINI_API_KEY.")
         
@@ -106,8 +100,6 @@ class AiService:
         fallback recipe so the endpoint works for local development without keys.
         """
         def fallback(ings: List[str]) -> Dict:
-            print("⚠️ FALLBACK: Utilisation du fallback au lieu de Gemini AI")
-            
             # Templates de recettes variés selon les ingrédients
             templates = {
                 'poulet': {
@@ -191,10 +183,7 @@ class AiService:
             }
 
         if not self.model:
-            print(f"❌ GEMINI NON DISPONIBLE: api_key={'SET' if self.api_key else 'MISSING'}, model={self.model}")
             return fallback(ingredients)
-        
-        print(f"✅ GEMINI ACTIF: Génération avec {len(ingredients)} ingrédients: {ingredients}")
 
         prompt = f"Create a recipe using these ingredients: {', '.join(ingredients)}\nProvide the result as JSON with keys: title, ingredients (list), instructions (list), cooking_time (int), servings (int)."
 
@@ -229,10 +218,7 @@ class AiService:
 
             recipe = json.loads(json_text)
             if not all(k in recipe for k in ("title", "ingredients", "instructions", "cooking_time", "servings")):
-                print("⚠️ GEMINI: Clés manquantes dans la réponse, utilisation du fallback")
                 return fallback(ingredients)
-            print(f"✅ GEMINI: Recette générée avec succès - {recipe['title']}")
             return recipe
         except Exception as e:
-            print(f"❌ GEMINI ERREUR: {type(e).__name__}: {str(e)}")
             return fallback(ingredients)
