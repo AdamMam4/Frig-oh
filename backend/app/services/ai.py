@@ -59,12 +59,12 @@ class AiService:
         try:
             image = Image.open(io.BytesIO(image_data))
             
-            prompt = """Analyze this image and identify all food ingredients visible.
-            Return ONLY a JSON array of ingredient names, nothing else.
-            Be specific (e.g., "cherry tomatoes" instead of just "tomatoes").
-            Example format: ["tomatoes", "eggs", "onions", "garlic"]
+            prompt = """Analyse cette image et identifie tous les ingrédients alimentaires visibles.
+            Retourne UNIQUEMENT un tableau JSON des noms d'ingrédients EN FRANÇAIS, rien d'autre.
+            Sois précis (par exemple, "tomates cerises" au lieu de simplement "tomates").
+            Format d'exemple: ["tomates", "œufs", "oignons", "ail"]
             
-            Only include actual food ingredients, not prepared dishes or cookware."""
+            Inclus uniquement les ingrédients alimentaires réels, pas les plats préparés ou les ustensiles de cuisine."""
             
             gen_fn = getattr(self.model, 'generate_content_async', None)
             if gen_fn is not None:
