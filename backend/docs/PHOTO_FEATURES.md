@@ -5,7 +5,6 @@
 This feature allows users to upload photos of ingredients and automatically:
 1. **Detect ingredients** in the image using AI vision
 2. **Generate recipes** based on the detected ingredients
-3. **Save recipes** to their account
 
 ## Quick Start
 
@@ -108,68 +107,6 @@ Upload a photo, detect ingredients, generate a recipe, and save it.
 }
 ```
 
-## Code Examples
-
-### Python
-```python
-import requests
-
-# Login
-response = requests.post(
-    "http://localhost:8000/auth/login",
-    json={"username": "user", "password": "pass"}
-)
-token = response.json()["access_token"]
-
-# Upload and analyze image
-with open("ingredients.jpg", "rb") as f:
-    response = requests.post(
-        "http://localhost:8000/recipes/analyze-ingredients",
-        files={"file": f},
-        headers={"Authorization": f"Bearer {token}"}
-    )
-
-print(response.json()["ingredients"])
-```
-
-### JavaScript/TypeScript
-```javascript
-async function analyzeIngredients(imageFile) {
-  const formData = new FormData();
-  formData.append('file', imageFile);
-  
-  const response = await fetch('http://localhost:8000/recipes/analyze-ingredients', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    },
-    body: formData
-  });
-  
-  const data = await response.json();
-  return data.ingredients;
-}
-```
-
-## Features
-
-✅ Upload images (JPEG, PNG, WebP, GIF, BMP)  
-✅ AI ingredient detection (Google Gemini Vision)  
-✅ Automatic recipe generation  
-✅ Save to user's recipe collection  
-✅ File validation (type, size up to 10MB)  
-✅ JWT authentication required  
-✅ Comprehensive error handling  
-✅ No permanent image storage (privacy-focused)  
-
-## Security
-
-- 🔐 JWT authentication required for all endpoints
-- 📏 10MB file size limit
-- 🖼️ Image type validation
-- 🚫 No permanent storage of uploaded photos
-- ✅ Input sanitization and error handling
-
 ## Testing
 
 ### Run Unit Tests
@@ -182,13 +119,6 @@ pytest tests/test_image_ingredients.py -v
 2. POST `/recipes/analyze-ingredients` → Upload image with token
 3. Verify response contains ingredient list
 
-## Tips for Best Results
-
-1. **Good lighting** - Take photos in bright, natural light
-2. **Clear focus** - Ensure ingredients are sharp and in focus
-3. **Close-up shots** - Get closer to show ingredient details
-4. **Separate items** - Spread ingredients out when possible
-5. **Clean background** - Avoid cluttered backgrounds
 
 ## Troubleshooting
 
@@ -251,12 +181,3 @@ def validate_image_file(file: UploadFile) -> None:
 3. Generate recipe with title, ingredients, instructions
 4. Save to MongoDB with `is_ai_generated=true` flag
 5. Return complete recipe to user
-
-## Future Enhancements
-
-- [ ] Support for multiple languages
-- [ ] Dietary restriction filtering
-- [ ] Nutrition information
-- [ ] Confidence scores for detected ingredients
-- [ ] Batch image processing
-- [ ] Image preprocessing for better detection
