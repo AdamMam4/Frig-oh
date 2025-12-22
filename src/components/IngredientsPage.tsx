@@ -317,7 +317,7 @@ export function IngredientsPage({ ingredients, setIngredients, onNavigate }: Ing
           <Button
             onClick={() => fileInputRef.current?.click()}
             disabled={analyzingImage}
-            className="h-14 px-6 rounded-full bg-secondary hover:bg-secondary/90 text-black"
+            className="h-14 px-6 rounded-full bg-primary hover:bg-primary/90 text-black"
             title="Analyser une photo"
           >
             {analyzingImage ? (
