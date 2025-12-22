@@ -32,6 +32,31 @@ class LoginRequest(BaseModel):
     email: str = Field(..., example="user@example.com")
     password: str = Field(..., min_length=6, example="strongpassword123")
 
+
+class ForgotPasswordRequest(BaseModel):
+    email: str = Field(..., example="user@example.com")
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(..., example="reset_token_here")
+    new_password: str = Field(..., min_length=6, example="newstrongpassword123")
+
+
+class UpdateUsernameRequest(BaseModel):
+    new_username: str = Field(..., min_length=3, max_length=50, example="newusername")
+
+
+class ChangePasswordRequest(BaseModel):
+    """Request to initiate password change (sends verification code by email)"""
+    pass
+
+
+class VerifyPasswordChangeRequest(BaseModel):
+    """Verify code and change password"""
+    code: str = Field(..., example="123456")
+    new_password: str = Field(..., min_length=6, example="newstrongpassword123")
+
+
 class UserInDB(UserBase):
     # Use string representation for OpenAPI friendliness
     id: str = Field(default_factory=lambda: str(PyObjectId()), alias="_id")
@@ -65,3 +90,22 @@ class Recipe(RecipeBase):
     class Config:
         json_encoders = {ObjectId: str}
         populate_by_name = True
+
+
+class Favorite(BaseModel):
+    id: str = Field(default_factory=lambda: str(PyObjectId()), alias="_id")
+    user_id: str
+    recipe_id: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    class Config:
+        json_encoders = {ObjectId: str}
+        populate_by_name = True
+
+
+class UserStats(BaseModel):
+    email: str
+    username: str
+    total_recipes: int
+    ai_generated_recipes: int
+    favorites_count: int

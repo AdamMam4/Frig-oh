@@ -19,3 +19,17 @@ class UserService:
 
     async def get_user_by_email(self, email: str) -> Optional[dict]:
         return await users_collection.find_one({"email": email})
+
+    async def update_user_password(self, email: str, hashed_password: str) -> bool:
+        result = await users_collection.update_one(
+            {"email": email},
+            {"$set": {"hashed_password": hashed_password}}
+        )
+        return result.modified_count > 0
+
+    async def update_username(self, email: str, new_username: str) -> bool:
+        result = await users_collection.update_one(
+            {"email": email},
+            {"$set": {"username": new_username}}
+        )
+        return result.modified_count > 0
