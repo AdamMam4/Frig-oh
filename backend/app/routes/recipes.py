@@ -10,6 +10,25 @@ recipe_service = RecipeService()
 ai_service = AiService()
 auth_service = AuthService()
 
+# Constants for image validation
+MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB
+
+def validate_image_file(file: UploadFile) -> None:
+    """
+    Validate uploaded image file.
+    
+    Args:
+        file: The uploaded file to validate
+        
+    Raises:
+        HTTPException: If file validation fails
+    """
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File must be an image"
+        )
+
 @router.post("/", response_model=Recipe)
 async def create_recipe(
     recipe: RecipeCreate,
@@ -59,30 +78,26 @@ async def analyze_ingredients_from_photo(
     current_user = Depends(auth_service.get_current_user)
 ):
     """
-    Upload a photo of ingredients and get a list of detected ingredients.
+    Analyze a photo and detect ingredients using AI vision.
     
-    This endpoint accepts an image file, analyzes it using AI vision,
-    and returns a list of ingredient names found in the image.
+    Args:
+        file: Image file containing ingredients
+        current_user: Authenticated user
+        
+    Returns:
+        Dictionary with detected ingredients list and count
     """
-    # Validate file type
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File must be an image"
-        )
+    validate_image_file(file)
     
-    # Read image data
     try:
         image_data = await file.read()
         
-        # Check file size (limit to 10MB)
-        if len(image_data) > 10 * 1024 * 1024:
+        if len(image_data) > MAX_IMAGE_SIZE:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="File size must be less than 10MB"
+                detail=f"File size must be less than {MAX_IMAGE_SIZE // (1024*1024)}MB"
             )
         
-        # Analyze ingredients using AI
         ingredients = await ai_service.analyze_ingredients_from_image(image_data)
         
         return {
@@ -91,6 +106,8 @@ async def analyze_ingredients_from_photo(
             "message": f"Detected {len(ingredients)} ingredient(s) in the image"
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -103,32 +120,32 @@ async def generate_recipe_from_photo(
     current_user = Depends(auth_service.get_current_user)
 ):
     """
-    Upload a photo of ingredients and automatically generate and save a recipe.
+    Generate and save a recipe from an ingredient photo.
     
-    This endpoint combines image analysis with recipe generation:
-    1. Analyzes the photo to extract ingredients
-    2. Generates a recipe using those ingredients
+    This endpoint:
+    1. Analyzes the photo to detect ingredients
+    2. Generates a recipe using AI
     3. Saves the recipe to the user's account
+    
+    Args:
+        file: Image file containing ingredients
+        current_user: Authenticated user
+        
+    Returns:
+        Dictionary with detected ingredients and generated recipe
     """
-    # Validate file type
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File must be an image"
-        )
+    validate_image_file(file)
     
     try:
-        # Read and analyze image
         image_data = await file.read()
         
-        # Check file size (limit to 10MB)
-        if len(image_data) > 10 * 1024 * 1024:
+        if len(image_data) > MAX_IMAGE_SIZE:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="File size must be less than 10MB"
+                detail=f"File size must be less than {MAX_IMAGE_SIZE // (1024*1024)}MB"
             )
         
-        # Step 1: Extract ingredients from image
+        # Extract ingredients from image
         ingredients = await ai_service.analyze_ingredients_from_image(image_data)
         
         if not ingredients:
@@ -137,10 +154,10 @@ async def generate_recipe_from_photo(
                 detail="No ingredients detected in the image"
             )
         
-        # Step 2: Generate recipe from ingredients
+        # Generate recipe from detected ingredients
         recipe = await ai_service.generate_recipe(ingredients)
         
-        # Step 3: Save the generated recipe
+        # Save the recipe to database
         recipe_data = RecipeCreate(
             title=recipe["title"],
             ingredients=recipe["ingredients"],

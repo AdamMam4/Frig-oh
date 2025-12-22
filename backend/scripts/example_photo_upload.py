@@ -7,21 +7,29 @@ This script shows how to:
 3. Generate and save a recipe from the photo
 
 Usage:
-    python example_photo_upload.py /path/to/image.jpg
+    python example_photo_upload.py <path_to_image.jpg>
 """
 
 import requests
 import sys
 import os
-from pathlib import Path
 
 # Configuration
 BASE_URL = "http://localhost:8000"
-USERNAME = "ynsyns" 
-PASSWORD = "russie"  
+USERNAME = "ynsyns"
+PASSWORD = "russie"
 
 def login(username: str, password: str) -> str:
-    """Login and get authentication token."""
+    """
+    Login and retrieve authentication token.
+    
+    Args:
+        username: User's username
+        password: User's password
+        
+    Returns:
+        JWT authentication token
+    """
     print(f"Logging in as {username}...")
     
     response = requests.post(
@@ -111,17 +119,19 @@ def generate_recipe_from_photo(image_path: str, token: str) -> dict:
             print(f"   {i}. {ingredient}")
         
         recipe = data['recipe']
-        print(f"\nGenerated Recipe: {recipe['title']}")
+        print(f"\n{'='*60}")
+        print(f"Generated Recipe: {recipe['title']}")
         print(f"⏱️  Cooking Time: {recipe['cooking_time']} minutes")
         print(f"🍽️  Servings: {recipe['servings']}")
         
-        print(f"\n📝 Ingredients List:")
+        print(f"\n📝 Ingredients:")
         for i, ingredient in enumerate(recipe['ingredients'], 1):
             print(f"   {i}. {ingredient}")
         
-        print(f"\nInstructions:")
+        print(f"\n📖 Instructions:")
         for i, instruction in enumerate(recipe['instructions'], 1):
             print(f"   {i}. {instruction}")
+        print(f"{'='*60}")
         
         return data
     else:
@@ -129,12 +139,11 @@ def generate_recipe_from_photo(image_path: str, token: str) -> dict:
         sys.exit(1)
 
 def main():
-    """Main function."""
+    """Run the photo-based ingredient recognition demo."""
     print("=" * 60)
     print("🍳 Photo-Based Ingredient Recognition Demo")
     print("=" * 60)
     
-    # Check if image path is provided
     if len(sys.argv) < 2:
         print("\n❌ Error: No image file provided")
         print("\nUsage:")
@@ -145,10 +154,10 @@ def main():
     
     image_path = sys.argv[1]
     
-    # Step 1: Login
+    # Login
     token = login(USERNAME, PASSWORD)
     
-    # Step 2: Choose operation
+    # Choose operation
     print("\n" + "=" * 60)
     print("Choose an option:")
     print("  1. Analyze ingredients only")
@@ -158,13 +167,9 @@ def main():
     choice = input("\nEnter choice (1 or 2): ").strip()
     
     if choice == "1":
-        # Just analyze ingredients
-        result = analyze_ingredients(image_path, token)
-        
+        analyze_ingredients(image_path, token)
     elif choice == "2":
-        # Full workflow: analyze + generate + save
-        result = generate_recipe_from_photo(image_path, token)
-        
+        generate_recipe_from_photo(image_path, token)
     else:
         print("❌ Invalid choice. Please enter 1 or 2.")
         sys.exit(1)
@@ -175,3 +180,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

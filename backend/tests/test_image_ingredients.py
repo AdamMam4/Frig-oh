@@ -1,8 +1,8 @@
 """
-Test file for image-based ingredient recognition feature.
+Tests for image-based ingredient recognition feature.
 
-This file demonstrates how to test the photo upload and ingredient
-detection endpoints.
+This module contains test cases for the photo upload and ingredient
+detection endpoints. Tests require authentication tokens.
 """
 
 import pytest
@@ -13,9 +13,19 @@ from PIL import Image
 
 client = TestClient(app)
 
-def create_test_image():
-    """Create a simple test image in memory."""
-    img = Image.new('RGB', (100, 100), color='red')
+def create_test_image(width: int = 100, height: int = 100, color: str = 'red') -> io.BytesIO:
+    """
+    Create a simple test image in memory.
+    
+    Args:
+        width: Image width in pixels
+        height: Image height in pixels
+        color: Background color
+        
+    Returns:
+        BytesIO object containing JPEG image data
+    """
+    img = Image.new('RGB', (width, height), color=color)
     img_bytes = io.BytesIO()
     img.save(img_bytes, format='JPEG')
     img_bytes.seek(0)
@@ -25,23 +35,13 @@ def test_analyze_ingredients_endpoint():
     """
     Test the /recipes/analyze-ingredients endpoint.
     
-    Note: This test requires authentication. You'll need to:
-    1. Create a test user
-    2. Get an authentication token
-    3. Include it in the request headers
+    Note: This test requires a valid authentication token.
+    Replace 'YOUR_TEST_TOKEN_HERE' with an actual token for testing.
     """
-    # Create a test image
     test_image = create_test_image()
     
-    # Mock authentication token (replace with actual token in real tests)
-    headers = {
-        "Authorization": "Bearer YOUR_TEST_TOKEN_HERE"
-    }
-    
-    # Send POST request with image file
-    files = {
-        "file": ("test_image.jpg", test_image, "image/jpeg")
-    }
+    headers = {"Authorization": "Bearer YOUR_TEST_TOKEN_HERE"}
+    files = {"file": ("test_image.jpg", test_image, "image/jpeg")}
     
     response = client.post(
         "/recipes/analyze-ingredients",
@@ -49,12 +49,13 @@ def test_analyze_ingredients_endpoint():
         headers=headers
     )
     
-    # Assertions
     assert response.status_code == 200
     data = response.json()
     assert "ingredients" in data
     assert "count" in data
+    assert "message" in data
     assert isinstance(data["ingredients"], list)
+    assert data["count"] == len(data["ingredients"])
 
 def test_generate_recipe_from_photo():
     """
@@ -62,18 +63,13 @@ def test_generate_recipe_from_photo():
     
     This endpoint should:
     1. Analyze the image for ingredients
-    2. Generate a recipe
-    3. Save it to the database
+    2. Generate a recipe using AI
+    3. Save the recipe to the database
     """
     test_image = create_test_image()
     
-    headers = {
-        "Authorization": "Bearer YOUR_TEST_TOKEN_HERE"
-    }
-    
-    files = {
-        "file": ("test_image.jpg", test_image, "image/jpeg")
-    }
+    headers = {"Authorization": "Bearer YOUR_TEST_TOKEN_HERE"}
+    files = {"file": ("test_image.jpg", test_image, "image/jpeg")}
     
     response = client.post(
         "/recipes/generate-from-photo",
@@ -86,19 +82,15 @@ def test_generate_recipe_from_photo():
     assert "detected_ingredients" in data
     assert "recipe" in data
     assert "message" in data
+    assert isinstance(data["detected_ingredients"], list)
+    assert "title" in data["recipe"]
 
 def test_invalid_file_type():
-    """Test that non-image files are rejected."""
-    # Create a text file instead of an image
+    """Test that non-image files are rejected with appropriate error."""
     text_file = io.BytesIO(b"This is not an image")
     
-    headers = {
-        "Authorization": "Bearer YOUR_TEST_TOKEN_HERE"
-    }
-    
-    files = {
-        "file": ("test.txt", text_file, "text/plain")
-    }
+    headers = {"Authorization": "Bearer YOUR_TEST_TOKEN_HERE"}
+    files = {"file": ("test.txt", text_file, "text/plain")}
     
     response = client.post(
         "/recipes/analyze-ingredients",
@@ -109,5 +101,18 @@ def test_invalid_file_type():
     assert response.status_code == 400
     assert "must be an image" in response.json()["detail"].lower()
 
+def test_missing_authentication():
+    """Test that unauthenticated requests are rejected."""
+    test_image = create_test_image()
+    files = {"file": ("test_image.jpg", test_image, "image/jpeg")}
+    
+    response = client.post(
+        "/recipes/analyze-ingredients",
+        files=files
+    )
+    
+    assert response.status_code == 401
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
