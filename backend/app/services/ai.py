@@ -28,12 +28,12 @@ class AiService:
         if genai is not None and self.api_key:
             try:
                 genai.configure(api_key=self.api_key)
-                # Using gemini-1.5-flash for stability (photo features tested with this version)
-                model_name = os.getenv("GEMINI_MODEL", "models/gemini-1.5-flash")
-                Model = getattr(genai, 'GenerativeModel', None)
-                if Model is not None:
-                    self.model = Model(model_name)
-            except Exception:
+                # Using gemini-2.5-flash - confirmed available from list_models()
+                # Supports generateContent which we need for image analysis
+                self.model = genai.GenerativeModel("models/gemini-2.5-flash")
+                print(f"✅ AiService initialized with models/gemini-2.5-flash")
+            except Exception as e:
+                print(f"❌ AiService initialization error: {e}")
                 self.model = None
 
     async def analyze_ingredients_from_image(self, image_data: bytes) -> List[str]:
@@ -49,6 +49,10 @@ class AiService:
         Raises:
             Exception: If image analysis fails or Gemini is not available
         """
+        print(f"🔍 analyze_ingredients_from_image called")
+        print(f"🔍 Model available: {self.model is not None}")
+        print(f"🔍 Model name: {self.model._model_name if self.model and hasattr(self.model, '_model_name') else 'N/A'}")
+        
         if not self.model:
             raise Exception("Gemini AI not available. Please configure GEMINI_API_KEY.")
         
