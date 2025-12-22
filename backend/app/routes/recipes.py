@@ -43,10 +43,20 @@ async def get_user_recipes(
     return await recipe_service.get_user_recipes(current_user["_id"])
 
 @router.post("/generate")
-async def generate_recipe(
+async def generate_recipe_from_ingredients(
     ingredients: List[str],
     current_user = Depends(auth_service.get_current_user)
 ):
+    """
+    Generate a recipe from a list of ingredients.
+    
+    Args:
+        ingredients: List of ingredient names
+        current_user: Authenticated user
+        
+    Returns:
+        Generated recipe saved to the database
+    """
     # Generate recipe using AI
     recipe = await ai_service.generate_recipe(ingredients)
     # Save the generated recipe
@@ -123,9 +133,8 @@ async def generate_recipe_from_photo(
     Generate and save a recipe from an ingredient photo.
     
     This endpoint:
-    1. Analyzes the photo to detect ingredients
-    2. Generates a recipe using AI
-    3. Saves the recipe to the user's account
+    1. Analyzes the photo to detect ingredients (using AI vision)
+    2. Calls the existing /generate endpoint to create the recipe
     
     Args:
         file: Image file containing ingredients
@@ -145,7 +154,7 @@ async def generate_recipe_from_photo(
                 detail=f"File size must be less than {MAX_IMAGE_SIZE // (1024*1024)}MB"
             )
         
-        # Extract ingredients from image
+        # Step 1: Extract ingredients from image
         ingredients = await ai_service.analyze_ingredients_from_image(image_data)
         
         if not ingredients:
@@ -154,23 +163,8 @@ async def generate_recipe_from_photo(
                 detail="No ingredients detected in the image"
             )
         
-        # Generate recipe from detected ingredients
-        recipe = await ai_service.generate_recipe(ingredients)
-        
-        # Save the recipe to database
-        recipe_data = RecipeCreate(
-            title=recipe["title"],
-            ingredients=recipe["ingredients"],
-            instructions=recipe["instructions"],
-            cooking_time=recipe["cooking_time"],
-            servings=recipe["servings"]
-        )
-        
-        saved_recipe = await recipe_service.create_recipe(
-            recipe_data, 
-            current_user["_id"], 
-            is_ai_generated=True
-        )
+        # Step 2: Use existing recipe generation logic
+        saved_recipe = await generate_recipe_from_ingredients(ingredients, current_user)
         
         return {
             "detected_ingredients": ingredients,
