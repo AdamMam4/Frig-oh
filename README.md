@@ -1,177 +1,156 @@
 # Frig-oh
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Frig-oh is a web application (React frontend + FastAPI backend) for managing and generating recipes, detecting ingredients from photos, and delivering visual experiences (3D models and an intro video).
 
-## 🐳 Docker Setup (Recommended)
+This README provides a concise, English-only overview of the project, the technologies used, how to run it, and where to look in the codebase.
 
-The easiest way to run the entire application stack is using Docker.
+## Technologies
 
-### Prerequisites
+- Backend: Python 3.x, FastAPI, Uvicorn, Pydantic, Motor (async Mongo client) / PyMongo, pytest
+- AI: Google Gemini (gemini model), Pillow for image handling; safe JSON parsing and fallback templates
+- Frontend: React (v18+/v19), TypeScript, Tailwind CSS, Framer Motion, Three.js, Radix UI, lucide-react
+- Dev & tooling: Docker / Docker Compose, Node/npm, ESLint, Prettier, TypeScript, CI-friendly test tooling
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop) installed on your system
-- Docker Compose (included with Docker Desktop)
+## Key structure (entry points)
 
-### Quick Start with Docker
+- `backend/`
+  - `app/main.py`, `run.py` — FastAPI startup
+  - `app/routes/` — API endpoints (auth, recipes, image upload)
+  - `app/services/ai.py` — Gemini integration and secure parsing
+  - `app/services/recipe.py` — recipe business logic
+  - `app/database.py`, `app/models.py` — MongoDB and Pydantic models
+  - `tests/` — pytest test suite (image/AI and recipes)
+- `src/` (frontend)
+  - `index.tsx`, `App.tsx` — React entry
+  - `components/` — pages and components (RecipesPage, RecipeDetail, RecipeCard, SaladThree, IntroVideo, etc.)
+  - `data/` — sample recipes and ingredients
+  - `styles/globals.css` — Tailwind and custom CSS
+  - `services/api.ts` — API wrapper for backend calls
+- `package.json` — frontend dependencies (React, three, framer-motion, tailwind, radix, lucide)
+- `backend/requirements.txt` — Python dependencies
 
-1. **Create Environment Configuration**
+## Features (brief)
 
-   Add the `.env` file in the `backend` directory with the following variables:
+- Backend
+  - JWT authentication, recipe CRUD, favorites, user profiles
+  - Image upload -> AI ingredient detection
+  - Recipe generation via AI with local fallback
+  - Pytest tests for key flows
 
+- Frontend
+  - Recipe listing, search, filtering
+  - Recipe detail modal (`RecipeDetail`)
+  - Favorites synced with backend
+  - Utility components (ImageWithFallback, ThemeProvider)
 
-2. **Build and Start All Services**
+- Animations / Graphics
+  - `SaladThree.tsx`: three.js — loads a GLB model, recenters/scales it, auto-rotates, drag-to-rotate with easing, and performs proper cleanup
+  - `IntroVideo.tsx`: full-screen intro video with fallback handling and a skip button
+  - UI transitions use Framer Motion and Tailwind animations
 
-   ```bash
-   docker-compose up --build
-   ```
+## Linters & Formatters
 
-3. **Access the Application**
-   - **Frontend**: http://localhost
-   - **Backend API**: http://localhost:8000
-   - **API Documentation**: http://localhost:8000/docs
-   - **MongoDB**: localhost:27017
+This project uses ESLint and Prettier for static analysis and automated formatting.
 
-### Docker Services
+- ESLint
+  - Core packages present: `eslint`, `@eslint/js` and plugins such as `eslint-plugin-react`, `eslint-plugin-import`.
+  - Configuration: the project extends Create React App defaults (`react-app`, `react-app/jest`) via `package.json`.
+  - Purpose: catch likely bugs, enforce best practices and maintain code quality for JS/TS files.
 
-The application stack consists of three services:
+- Prettier
+  - Package: `prettier` with `eslint-plugin-prettier` and `eslint-config-prettier` to avoid rule conflicts.
+  - Purpose: automatic, consistent code formatting (spacing, quotes, trailing commas, etc.).
 
-- **Frontend**: React application served by Nginx (port 80)
-- **Backend**: FastAPI Python application (port 8000)
-- **MongoDB**: Database server (port 27017)
+- TypeScript linting
+  - The repo lists a `typescript-eslint` entry in devDependencies; the canonical ESLint TypeScript packages are `@typescript-eslint/parser` and `@typescript-eslint/eslint-plugin` if you enable TypeScript-specific rules.
 
-### Useful Docker Commands
+Scripts (see `package.json`)
 
 ```bash
-# Stop all services
-docker-compose down
-
-# Stop and remove volumes (clean slate)
-docker-compose down -v
-
-# View logs from all services
-docker-compose logs
-
-# View logs from specific service
-docker-compose logs backend
-docker-compose logs frontend
-docker-compose logs mongodb
-
-# Follow logs in real-time
-docker-compose logs -f
-
-# Restart a specific service
-docker-compose restart backend
-
-# Rebuild a specific service
-docker-compose build backend
-
-# Access backend container shell
-docker-compose exec backend bash
-
-# Access MongoDB shell
-docker-compose exec mongodb mongosh
+npm run lint       # runs: eslint .
+npm run lint:fix   # runs: eslint . --fix
+npm run format     # runs: prettier --write "src/**/*.{js,jsx,ts,tsx,json,css,md}"
+npm run check      # runs lint + format
 ```
 
-For more detailed Docker setup information, see [DOCKER_SETUP.md](DOCKER_SETUP.md).
+How to run (project root):
 
----
+```powershell
+npm install
+npm run lint
+npm run lint:fix
+npm run format
+```
 
-## 💻 Local Development (Without Docker)
+Editor integration
 
-### Backend Setup
+For the best developer experience enable ESLint and Prettier extensions in your editor and enable format-on-save.
 
-1. **Navigate to the backend directory**
+Note: there are no pre-commit hooks configured in this repo by default.
 
-   ```bash
-   cd backend
-   ```
+## Important environment variables
 
-2. **Create a virtual environment**
+- Backend (`backend/.env` created from `.env.example`):
+  - `MONGO_URI` — MongoDB connection string
+  - `SECRET_KEY` — JWT secret
+  - `GEMINI_API_KEY` — Google Gemini API key (optional; the code has a fallback)
 
-   ```bash
-   python -m venv venv
-   ```
+> Do not commit secrets to the repository.
 
-3. **Activate the virtual environment**
-   - Windows PowerShell:
-     ```powershell
-     .\venv\Scripts\Activate.ps1
-     ```
-   - Windows CMD:
-     ```cmd
-     .\venv\Scripts\activate.bat
-     ```
-   - Linux/Mac:
-     ```bash
-     source venv/bin/activate
-     ```
+## Quick start
 
-4. **Install dependencies**
+With Docker (recommended if available):
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+```powershell
+docker-compose up --build
+```
 
-5. **Configure environment variables**
+Backend (local, without Docker):
 
-   Create a `.env` file in the `backend` directory with your configuration:
+```powershell
+cd backend
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+# copy .env.example -> .env and fill GEMINI_API_KEY and MONGO_URI
+python run.py
+```
 
-   ```env
-   MONGO_URI=mongodb://localhost:27017/frigoh
-   SECRET_KEY=your_secret_key_here
-   GOOGLE_API_KEY=your_gemini_api_key_here
-   ```
+Frontend (local):
 
-   For detailed configuration options, see [backend/SETUP.md](backend/SETUP.md)
+```powershell
+npm install
+npm start
+# open http://localhost:3000
+```
 
-6. **Start the backend server**
+## Tests
 
-   ```bash
-   python run.py
-   ```
+Backend:
 
-   The API will be available at: **http://localhost:8000**
+```powershell
+cd backend
+pytest -v
+```
 
-7. **Access API Documentation**
-   - **Interactive Swagger UI**: http://localhost:8000/docs
-   - **ReDoc**: http://localhost:8000/redoc
-   - **Written Documentation**: [backend/API_DOCUMENTATION.md](backend/API_DOCUMENTATION.md)
+Frontend:
 
-### Frontend Setup
+```powershell
+npm test
+```
 
-In the project directory, you can run:
+## Technical notes and attention points
 
-### `npm start`
+- `backend/app/services/ai.py` strips code fences and parses JSON safely (no eval). A fallback exists when Gemini is unavailable.
+- `SaladThree.tsx` properly disposes geometries and materials on unmount to avoid memory leaks.
+- Some UI text and labels remain in French; standardize language on a dedicated branch with atomic commits.
+- Install frontend dependencies before running `npm start` to avoid type/module errors.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Recommended first files to read
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+1. `backend/app/services/ai.py` — AI pipeline (image -> ingredients, recipe generation)
+2. `backend/app/routes/recipes.py` — API endpoints used by the frontend
+3. `src/components/RecipesPage.tsx` and `src/components/RecipeDetail.tsx` — main UI flow
 
 ## Learn More
 
