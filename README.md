@@ -1,8 +1,142 @@
-# Getting Started with Create React App
+# Frig-oh
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+## 🐳 Docker Setup (Recommended)
+
+The easiest way to run the entire application stack is using Docker.
+
+### Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) installed on your system
+- Docker Compose (included with Docker Desktop)
+
+### Quick Start with Docker
+
+1. **Create Environment Configuration**
+
+   Add the `.env` file in the `backend` directory with the following variables:
+
+
+2. **Build and Start All Services**
+
+   ```bash
+   docker-compose up --build
+   ```
+
+3. **Access the Application**
+   - **Frontend**: http://localhost
+   - **Backend API**: http://localhost:8000
+   - **API Documentation**: http://localhost:8000/docs
+   - **MongoDB**: localhost:27017
+
+### Docker Services
+
+The application stack consists of three services:
+
+- **Frontend**: React application served by Nginx (port 80)
+- **Backend**: FastAPI Python application (port 8000)
+- **MongoDB**: Database server (port 27017)
+
+### Useful Docker Commands
+
+```bash
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (clean slate)
+docker-compose down -v
+
+# View logs from all services
+docker-compose logs
+
+# View logs from specific service
+docker-compose logs backend
+docker-compose logs frontend
+docker-compose logs mongodb
+
+# Follow logs in real-time
+docker-compose logs -f
+
+# Restart a specific service
+docker-compose restart backend
+
+# Rebuild a specific service
+docker-compose build backend
+
+# Access backend container shell
+docker-compose exec backend bash
+
+# Access MongoDB shell
+docker-compose exec mongodb mongosh
+```
+
+For more detailed Docker setup information, see [DOCKER_SETUP.md](DOCKER_SETUP.md).
+
+---
+
+## 💻 Local Development (Without Docker)
+
+### Backend Setup
+
+1. **Navigate to the backend directory**
+
+   ```bash
+   cd backend
+   ```
+
+2. **Create a virtual environment**
+
+   ```bash
+   python -m venv venv
+   ```
+
+3. **Activate the virtual environment**
+   - Windows PowerShell:
+     ```powershell
+     .\venv\Scripts\Activate.ps1
+     ```
+   - Windows CMD:
+     ```cmd
+     .\venv\Scripts\activate.bat
+     ```
+   - Linux/Mac:
+     ```bash
+     source venv/bin/activate
+     ```
+
+4. **Install dependencies**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+5. **Configure environment variables**
+
+   Create a `.env` file in the `backend` directory with your configuration:
+
+   ```env
+   MONGO_URI=mongodb://localhost:27017/frigoh
+   SECRET_KEY=your_secret_key_here
+   GOOGLE_API_KEY=your_gemini_api_key_here
+   ```
+
+   For detailed configuration options, see [backend/SETUP.md](backend/SETUP.md)
+
+6. **Start the backend server**
+
+   ```bash
+   python run.py
+   ```
+
+   The API will be available at: **http://localhost:8000**
+
+7. **Access API Documentation**
+   - **Interactive Swagger UI**: http://localhost:8000/docs
+   - **ReDoc**: http://localhost:8000/redoc
+   - **Written Documentation**: [backend/API_DOCUMENTATION.md](backend/API_DOCUMENTATION.md)
+
+### Frontend Setup
 
 In the project directory, you can run:
 

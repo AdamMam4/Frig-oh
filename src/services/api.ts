@@ -34,6 +34,57 @@ class ApiService {
     };
   }
 
+  async analyzeIngredientsFromImage(imageFile: File): Promise<string[]> {
+    console.log("🌐 API: Analyse d'ingrédients depuis une image");
+    console.log("🌐 URL:", `${API_BASE_URL}/recipes/analyze-ingredients`);
+    console.log("🌐 Fichier:", imageFile.name);
+
+    const formData = new FormData();
+    formData.append("file", imageFile);
+
+    const token = this.getAuthToken();
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/recipes/analyze-ingredients`, {
+        method: "POST",
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: formData,
+      });
+
+      console.log("🌐 Status de la réponse:", response.status);
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          console.log("🌐 Erreur 401: Non authentifié");
+          throw new Error("Vous devez être connecté pour analyser des images");
+        }
+
+        let errorMessage = "Erreur lors de l'analyse de l'image";
+        try {
+          const error = await response.json();
+          console.log("🌐 Erreur API:", error);
+          errorMessage = error.detail || errorMessage;
+        } catch (e) {
+          console.log("🌐 Impossible de parser l'erreur JSON");
+        }
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      console.log("🌐 Ingrédients détectés:", data.ingredients);
+      return data.ingredients;
+    } catch (error: any) {
+      console.error("🌐 Exception lors de l'appel API:", error);
+      // Re-throw with a proper message
+      if (error.message) {
+        throw error;
+      }
+      throw new Error("Impossible de se connecter au serveur");
+    }
+  }
+
   async generateRecipe(ingredients: string[]): Promise<GeneratedRecipe> {
     console.log("🌐 API: Génération de recette");
     console.log("🌐 URL:", `${API_BASE_URL}/recipes/generate`);
