@@ -1,8 +1,101 @@
-# Getting Started with Create React App
+# Frig-oh
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+## 🐳 Docker Setup (Recommended)
+
+The easiest way to run the entire application stack is using Docker.
+
+### Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) installed on your system
+- Docker Compose (included with Docker Desktop)
+
+### Quick Start with Docker
+
+1. **Create Environment Configuration**
+
+   Create a `.env` file in the `backend` directory with the following variables:
+
+   ```env
+   # MongoDB Configuration
+   MONGO_ROOT_USERNAME=admin
+   MONGO_ROOT_PASSWORD=your_secure_password
+
+   # Backend Configuration
+   SECRET_KEY=your_secret_key_here_change_in_production
+   GOOGLE_API_KEY=your_google_api_key_here
+
+   # Optional: Frontend Configuration
+   REACT_APP_API_URL=http://localhost:8000
+   ```
+
+2. **Build and Start All Services**
+
+   ```bash
+   docker-compose up --build
+   ```
+
+   Or run in detached mode (background):
+
+   ```bash
+   docker-compose up -d --build
+   ```
+
+3. **Access the Application**
+   - **Frontend**: http://localhost
+   - **Backend API**: http://localhost:8000
+   - **API Documentation**: http://localhost:8000/docs
+   - **MongoDB**: localhost:27017
+
+### Docker Services
+
+The application stack consists of three services:
+
+- **Frontend**: React application served by Nginx (port 80)
+- **Backend**: FastAPI Python application (port 8000)
+- **MongoDB**: Database server (port 27017)
+
+### Useful Docker Commands
+
+```bash
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (clean slate)
+docker-compose down -v
+
+# View logs from all services
+docker-compose logs
+
+# View logs from specific service
+docker-compose logs backend
+docker-compose logs frontend
+docker-compose logs mongodb
+
+# Follow logs in real-time
+docker-compose logs -f
+
+# Restart a specific service
+docker-compose restart backend
+
+# Rebuild a specific service
+docker-compose build backend
+
+# Access backend container shell
+docker-compose exec backend bash
+
+# Access MongoDB shell
+docker-compose exec mongodb mongosh
+```
+
+For more detailed Docker setup information, see [DOCKER_SETUP.md](DOCKER_SETUP.md).
+
+---
+
+## 💻 Local Development (Without Docker)
+
+### Available Scripts
 
 In the project directory, you can run:
 
