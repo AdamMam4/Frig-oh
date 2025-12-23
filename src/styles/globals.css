@@ -7,18 +7,18 @@
 @layer base {
   :root {
     --font-size: 16px;
-    --background: 240 10% 96%; /* Fond très clair neutre */
-    --foreground: 210 15% 20%; /* Gris-bleu foncé */
-    --card: 0 0% 99%; /* Blanc très clair */
-    --card-foreground: 210 15% 20%; /* Gris-bleu foncé */
-    --popover: 0 0% 99%; /* Blanc très clair */
-    --popover-foreground: 210 15% 20%; /* Gris-bleu foncé */
-    --primary: 48 85% 60%; /* Jaune doré */
+  --background: 240 10% 96%; /* Light neutral background */
+  --foreground: 210 15% 20%; /* Dark slate blue */
+  --card: 0 0% 99%; /* Very light white */
+  --card-foreground: 210 15% 20%; /* Dark slate blue */
+  --popover: 0 0% 99%; /* Very light white */
+  --popover-foreground: 210 15% 20%; /* Dark slate blue */
+  --primary: 48 85% 60%; /* Golden yellow */
     --primary-foreground: 0 0% 10%; /* Noir */
-    --secondary: 35 80% 70%; /* Orange doux */
+  --secondary: 35 80% 70%; /* Soft orange */
     --secondary-foreground: 0 0% 10%; /* Noir */
-    --tertiary: 210 60% 75%; /* Bleu ciel */
-    --tertiary-foreground: 210 20% 25%; /* Bleu foncé */
+  --tertiary: 210 60% 75%; /* Sky blue */
+  --tertiary-foreground: 210 20% 25%; /* Dark blue */
     --muted: 240 5% 90%;
     --muted-foreground: 210 10% 45%;
     --accent: 240 5% 90%;
@@ -27,13 +27,13 @@
     --destructive-foreground: 0 0% 98%;
     --border: 240 5% 85%;
     --input: 240 5% 85%;
-    --ring: 48 85% 60%; /* Jaune doré */
+  --ring: 48 85% 60%; /* Golden yellow */
     --radius: 1rem;
   }
 
   .dark {
     --background: 210 25% 8%;
-    --foreground: 0 0% 97%;
+  --foreground: 0 0% 97%;
     --card: 210 20% 11%;
     --card-foreground: 0 0% 97%;
     --popover: 210 20% 11%;
@@ -46,7 +46,7 @@
     --muted-foreground: 0 0% 61%;
     --accent: 210 17% 18%;
     --accent-foreground: 0 0% 97%;
-  --tertiary: 210 30% 24%; /* Bleu foncé pour le mode sombre */
+  --tertiary: 210 30% 24%; /* Dark blue for dark mode */
   --tertiary-foreground: 0 0% 97%;
     --destructive: 0 63% 51%;
     --destructive-foreground: 0 0% 100%;

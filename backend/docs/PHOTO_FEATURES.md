@@ -2,17 +2,17 @@
 
 ## Overview
 
-This feature adds AI-powered image analysis :
+This feature adds AI-powered image analysis:
 1. **Detect ingredients** from photos using Google Gemini Vision
 2. **Generate recipes** from detected ingredients
 
 ## Setup
 
-Add Gemini API key to `backend/.env`:
+Add the Gemini API key to `backend/.env`.
 
-Get a free API key from [Google AI Studio](https://makersuite.google.com/app/apikey).
+Get a free API key from Google AI Studio: https://makersuite.google.com/app/apikey
 
-## Quick Test
+## Quick test
 
 ```bash
 python scripts/example_photo_upload.py path/to/image.jpg
@@ -20,12 +20,13 @@ python scripts/example_photo_upload.py path/to/image.jpg
 
 ## API Endpoints
 
-### Analyze Ingredients Only
-`POST /recipes/analyze-ingredients`
+### Analyze ingredients only
+POST `/recipes/analyze-ingredients`
 
 Returns a list of detected ingredients without generating a recipe.
 
-**Response:**
+Example response:
+
 ```json
 {
   "ingredients": ["tomatoes", "eggs", "onions", "garlic"],
@@ -34,12 +35,13 @@ Returns a list of detected ingredients without generating a recipe.
 }
 ```
 
-### Generate Recipe from Photo
-`POST /recipes/generate-from-photo`
+### Generate recipe from photo
+POST `/recipes/generate-from-photo`
 
-Analyzes photo, generates recipe, and saves it to the user's account.
+Analyze the photo, generate a recipe, and save it to the user's account.
 
-**Response:**
+Example response:
+
 ```json
 {
   "detected_ingredients": ["tomatoes", "eggs", "onions"],
@@ -58,16 +60,17 @@ Analyzes photo, generates recipe, and saves it to the user's account.
 ## Implementation
 
 **AI Service** (`app/services/ai.py`)
-- `analyze_ingredients_from_image()` - Uses Gemini 1.5 Flash Vision to detect ingredients
+- `analyze_ingredients_from_image()` - Uses Gemini Vision to detect ingredients
 - `generate_recipe()` - Generates recipes from ingredient lists
 
 **Routes** (`app/routes/recipes.py`)
-- `/analyze-ingredients` - Image → Ingredients list
-- `/generate-from-photo` - Image → Ingredients → Recipe (reuses existing `/generate` endpoint)
+- `/analyze-ingredients` - Image → ingredients list
+- `/generate-from-photo` - Image → ingredients → recipe (reuses existing `/generate` endpoint)
 
-**Tech Stack:** Google Gemini 1.5 Flash, Pillow, FastAPI
+Tech stack: Google Gemini, Pillow, FastAPI
 
 ## Validation
-- ✅ Image files only (jpg, png, webp, gif, bmp)
+
+- ✅ Accepts image file types only (jpg, png, webp, gif, bmp)
 - ✅ Max file size: 10MB
 - ✅ JWT authentication required
