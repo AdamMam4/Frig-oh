@@ -98,8 +98,30 @@ docker-compose logs mongodb
 
 ### Rebuild services
 
+**Complete rebuild (recommended):**
+
 ```bash
+docker-compose down
 docker-compose up --build
+```
+
+**More thorough rebuild (clears everything):**
+
+```bash
+# Stop and remove containers, networks, and volumes
+docker-compose down -v
+
+# Remove any cached images
+docker-compose build --no-cache
+
+# Start fresh
+docker-compose up
+```
+
+**Quick restart (without rebuild):**
+
+```bash
+docker-compose restart
 ```
 
 ### Remove volumes (warning: deletes data)
