@@ -132,6 +132,13 @@ async def generate_recipe_from_photo(
     """
     Generate and save a recipe from an ingredient photo.
     
+    NOTE: This endpoint is currently unused but kept for potential future use.
+    The frontend currently uses a two-step approach:
+    1. POST /recipes/analyze-ingredients (detect ingredients from photo)
+    2. POST /recipes/generate (generate recipe from ingredients list)
+    
+    This endpoint combines both steps into one.
+    
     This endpoint:
     1. Analyzes the photo to detect ingredients (using AI vision)
     2. Calls the existing /generate endpoint to create the recipe
