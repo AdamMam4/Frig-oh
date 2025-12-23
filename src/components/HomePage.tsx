@@ -26,19 +26,19 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
     const ingredient = ingredientToAdd || inputValue;
     const trimmedIngredient = ingredient.trim().toLowerCase();
     
-    // Vérifier si l'ingrédient n'est pas vide et n'est pas déjà dans la liste
+    // Check that the ingredient is not empty and not already in the list
     if (!trimmedIngredient || ingredients.includes(trimmedIngredient)) {
       return;
     }
 
-    // Vérifier si l'ingrédient est valide
+    // Check if the ingredient is valid
     if (isValidIngredient(trimmedIngredient)) {
       setIngredients([...ingredients, trimmedIngredient]);
       setInputValue('');
       setShowSuggestions(false);
       setIngredientSuggestions([]);
     } else {
-      // Trouver des suggestions similaires
+      // Find similar suggestions
       const suggestions = findSimilarIngredients(trimmedIngredient);
       if (suggestions.length > 0) {
         setIngredientSuggestions(suggestions);

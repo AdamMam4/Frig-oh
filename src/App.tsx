@@ -14,7 +14,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  // utilise sessionStorage : l'intro rejoue à chaque nouvelle session navigateur
+  // uses sessionStorage: the intro replays on each new browser session
   const [showIntro, setShowIntro] = useState(() => !sessionStorage.getItem('introPlayed'));
 
   const handleLogin = () => {
@@ -23,7 +23,7 @@ function App() {
 
   const handleLogout = () => {
     setIsLoggedIn(false);
-    setCurrentPage('home'); // Réinitialiser la page à l'accueil
+    setCurrentPage('home'); // Reset the page to home
   };
 
   const handleIntroComplete = () => {
@@ -31,12 +31,12 @@ function App() {
     setShowIntro(false);
   };
 
-  // Si l'intro doit être affichée
+  // If the intro should be shown
   if (showIntro) {
     return <IntroVideo onIntroComplete={handleIntroComplete} />;
   }
 
-  // Si non connecté, afficher la page de login
+  // If not logged in, show the login page
   if (!isLoggedIn) {
     return (
       <ThemeProvider>

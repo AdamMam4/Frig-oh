@@ -60,17 +60,17 @@ async def forgot_password(payload: ForgotPasswordRequest):
     db_user = await user_service.get_user_by_email(payload.email)
 
     if not db_user:
-        # Pour des raisons de sécurité, ne pas révéler si l'email existe
+        # For security reasons, do not reveal whether the email exists
         return {"message": "Si cet email existe, un code de réinitialisation a été envoyé", "email_sent": False}
 
-    # Générer un code à 6 chiffres
+    # Generate a 6-digit code
     reset_code = generate_reset_code()
     expires_at = datetime.utcnow() + timedelta(hours=1)
 
-    # Supprimer les anciens codes pour cet utilisateur
+    # Delete old codes for this user
     await password_reset_collection.delete_many({"email": payload.email})
 
-    # Sauvegarder le nouveau code
+    # Save the new code
     await password_reset_collection.insert_one({
         "email": payload.email,
         "token": reset_code,
@@ -78,7 +78,7 @@ async def forgot_password(payload: ForgotPasswordRequest):
         "created_at": datetime.utcnow()
     })
 
-    # Envoyer l'email
+    # Send the email
     email_sent = email_service.send_password_reset_email(payload.email, reset_code)
     
     if email_sent:
@@ -87,18 +87,18 @@ async def forgot_password(payload: ForgotPasswordRequest):
             "email_sent": True
         }
     else:
-        # Si l'email n'a pas pu être envoyé (service non configuré), retourner le code pour le dev
+        # If the email could not be sent (service not configured), return the code for dev
         return {
             "message": "Service email non configuré. Voici votre code (dev uniquement)",
             "email_sent": False,
-            "reset_code": reset_code  # Seulement si l'email n'est pas configuré
+            "reset_code": reset_code  # Only if email is not configured
         }
 
 
 @router.post("/reset-password")
 async def reset_password(payload: ResetPasswordRequest):
     """Reset the password using a valid reset token."""
-    # Vérifier le token
+    # Verify the token
     reset_record = await password_reset_collection.find_one({"token": payload.token})
 
     if not reset_record:
@@ -108,18 +108,18 @@ async def reset_password(payload: ResetPasswordRequest):
         )
 
     if reset_record["expires_at"] < datetime.utcnow():
-        # Supprimer le token expiré
+        # Delete the expired token
         await password_reset_collection.delete_one({"token": payload.token})
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Token invalide ou expiré"
         )
 
-    # Mettre à jour le mot de passe
+    # Update the password
     hashed_password = auth_service.get_password_hash(payload.new_password)
     await user_service.update_user_password(reset_record["email"], hashed_password)
 
-    # Supprimer le token utilisé
+    # Delete the used token
     await password_reset_collection.delete_one({"token": payload.token})
 
     return {"message": "Mot de passe réinitialisé avec succès"}
@@ -130,16 +130,16 @@ async def get_current_user_stats(current_user=Depends(auth_service.get_current_u
     """Get current user information and statistics."""
     user_id = current_user["_id"]
     
-    # Compter les recettes totales
+    # Count total recipes
     total_recipes = await recipes_collection.count_documents({"user_id": user_id})
     
-    # Compter les recettes générées par IA
+    # Count AI-generated recipes
     ai_generated_recipes = await recipes_collection.count_documents({
         "user_id": user_id,
         "is_ai_generated": True
     })
     
-    # Compter les favoris
+    # Count favorites
     favorites_count = await favorites_collection.count_documents({"user_id": str(user_id)})
     
     return UserStats(
@@ -170,14 +170,14 @@ async def request_password_change(current_user=Depends(auth_service.get_current_
     """Request a verification code to change password (sent by email)."""
     email = current_user["email"]
     
-    # Générer un code à 6 chiffres
+    # Generate a 6-digit code
     reset_code = generate_reset_code()
     expires_at = datetime.utcnow() + timedelta(hours=1)
 
-    # Supprimer les anciens codes pour cet utilisateur
+    # Delete old codes for this user
     await password_reset_collection.delete_many({"email": email})
 
-    # Sauvegarder le nouveau code
+    # Save the new code
     await password_reset_collection.insert_one({
         "email": email,
         "token": reset_code,
@@ -186,7 +186,7 @@ async def request_password_change(current_user=Depends(auth_service.get_current_
         "type": "password_change"
     })
 
-    # Envoyer l'email
+    # Send the email
     email_sent = email_service.send_password_reset_email(email, reset_code)
     
     if email_sent:
@@ -195,7 +195,7 @@ async def request_password_change(current_user=Depends(auth_service.get_current_
             "email_sent": True
         }
     else:
-        # Si l'email n'a pas pu être envoyé (service non configuré), retourner le code pour le dev
+        # If the email could not be sent (service not configured), return the code for dev
         return {
             "message": "Service email non configuré. Voici votre code (dev uniquement)",
             "email_sent": False,
@@ -208,7 +208,7 @@ async def verify_password_change(payload: VerifyPasswordChangeRequest, current_u
     """Verify code and change password for authenticated user."""
     email = current_user["email"]
     
-    # Vérifier le code
+    # Verify the code
     reset_record = await password_reset_collection.find_one({"email": email, "token": payload.code})
 
     if not reset_record:
@@ -224,11 +224,11 @@ async def verify_password_change(payload: VerifyPasswordChangeRequest, current_u
             detail="Code invalide ou expiré"
         )
 
-    # Mettre à jour le mot de passe
+    # Update the password
     hashed_password = auth_service.get_password_hash(payload.new_password)
     await user_service.update_user_password(email, hashed_password)
 
-    # Supprimer le code utilisé
+    # Delete the used code
     await password_reset_collection.delete_one({"token": payload.code})
 
     return {"message": "Mot de passe modifié avec succès"}

@@ -5,11 +5,11 @@ from dotenv import load_dotenv
 import os
 import traceback
 
-# Charger les variables d'environnement
+# Load environment variables
 load_dotenv()
 
 # Configuration
-BASE_URL = "http://127.0.0.1:8000"  # Utilisation de l'adresse IP plutôt que localhost
+BASE_URL = "http://127.0.0.1:8000"  # Use IP address instead of localhost
 TEST_USER_EMAIL = "test@example.com"
 TEST_USER_PASSWORD = "testpassword123"
 
@@ -23,7 +23,7 @@ async def test_recipe_creation():
         timeout = httpx.Timeout(30.0)
         async with httpx.AsyncClient(timeout=timeout) as client:
             print("\nTentative de connexion...")
-            # 1. Login pour obtenir le token
+            # 1. Login to obtain the token
             login_response = await client.post(
                 f"{BASE_URL}/auth/login",
                 json={"email": TEST_USER_EMAIL, "password": TEST_USER_PASSWORD}
@@ -39,7 +39,7 @@ async def test_recipe_creation():
             token = login_response.json()["access_token"]
             headers = {"Authorization": f"Bearer {token}"}
 
-            # 2. Création de la recette
+            # 2. Create the recipe
             recipe_data = {
                 "title": "Saumon aux œufs et paprika",
                 "description": "Une délicieuse recette de saumon accompagné d'œufs et assaisonné au paprika",
@@ -82,7 +82,7 @@ async def test_recipe_creation():
         print("\nUne erreur s'est produite:")
         print(traceback.format_exc())
 
-# Exécuter le test
+# Run the test
 if __name__ == "__main__":
     print("Démarrage du test...")
     try:

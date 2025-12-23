@@ -1,36 +1,36 @@
-// Liste complète des ingrédients disponibles
+// Complete list of available ingredients
 export const validIngredients = [
-  // Légumes
+  // Vegetables
   'tomates', 'tomate', 'salade romaine', 'salade', 'oignon', 'oignons', 'ail',
   'carottes', 'carotte', 'poivrons', 'poivron', 'courgettes', 'courgette',
   'aubergines', 'aubergine', 'brocoli', 'chou-fleur', 'épinards', 'champignons',
   'pommes de terre', 'pomme de terre', 'patates douces', 'patate douce',
   
-  // Viandes et poissons
+  // Meats and fish
   'poulet', 'bœuf', 'porc', 'agneau', 'bacon', 'saumon', 'thon', 'crevettes',
   
-  // Produits laitiers
+  // Dairy products
   'lait', 'crème', 'beurre', 'fromage', 'parmesan', 'mozzarella', 'gruyère',
   'yaourt', 'œufs', 'œuf',
   
-  // Féculents et céréales
+  // Starches and grains
   'pâtes', 'riz', 'quinoa', 'pain', 'farine',
   
-  // Condiments et épices
+  // Condiments and spices
   'sel', 'poivre', 'huile', "huile d'olive", 'vinaigre', 'moutarde',
   'mayonnaise', 'ketchup', 'sauce soja', 'paprika', 'cumin', 'curry',
   
   // Fruits
   'citron', 'citrons', 'citron vert', 'pommes', 'pomme', 'bananes', 'banane',
   
-  // Herbes
+  // Herbs
   'basilic', 'persil', 'coriandre', 'thym', 'romarin', 'menthe',
   
-  // Autres
+  // Others
   'sucre', 'miel', 'vin blanc', 'bouillon'
 ];
 
-// Fonction pour calculer la distance de Levenshtein (similarité entre deux mots)
+// Function to compute Levenshtein distance (similarity between two words)
 function levenshteinDistance(str1: string, str2: string): number {
   const len1 = str1.length;
   const len2 = str2.length;
@@ -58,16 +58,16 @@ function levenshteinDistance(str1: string, str2: string): number {
   return matrix[len1][len2];
 }
 
-// Fonction pour trouver des suggestions d'ingrédients similaires
+// Function to find suggestions of similar ingredients
 export function findSimilarIngredients(input: string, maxDistance: number = 2): string[] {
   const inputLower = input.toLowerCase().trim();
   
-  // Vérifier si l'ingrédient existe exactement
+  // Check if the ingredient exists exactly
   if (validIngredients.includes(inputLower)) {
     return [];
   }
 
-  // Trouver les ingrédients similaires
+  // Find similar ingredients
   const suggestions = validIngredients
     .map(ingredient => ({
       ingredient,
@@ -81,7 +81,7 @@ export function findSimilarIngredients(input: string, maxDistance: number = 2): 
   return suggestions;
 }
 
-// Fonction pour vérifier si un ingrédient est valide
+// Function to check if an ingredient is valid
 export function isValidIngredient(ingredient: string): boolean {
   return validIngredients.includes(ingredient.toLowerCase().trim());
 }

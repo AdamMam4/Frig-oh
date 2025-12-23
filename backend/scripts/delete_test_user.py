@@ -3,7 +3,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 import os
 
-# Charger les variables d'environnement
+# Load environment variables
 load_dotenv()
 
 # Configuration
@@ -12,7 +12,7 @@ MONGODB_URL = os.getenv("MONGODB_URL")
 async def delete_test_user():
     try:
         print(f"Tentative de connexion à MongoDB: {MONGODB_URL}")
-        # Connexion à MongoDB
+        # Connect to MongoDB
         client = AsyncIOMotorClient(MONGODB_URL)
         db = client.get_default_database()
         users_collection = db.users

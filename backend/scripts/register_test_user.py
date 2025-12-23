@@ -4,7 +4,7 @@ async def test_user_creation():
     try:
         print("Démarrage du test de création d'utilisateur...")
         
-        # Créer l'utilisateur
+        # Create the user
         user_data = {
             "email": "test@example.com",
             "username": "testuser",

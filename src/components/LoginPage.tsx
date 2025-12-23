@@ -21,7 +21,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // États pour le mot de passe oublié
+  // State for "forgot password"
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [resetToken, setResetToken] = useState("");
@@ -38,17 +38,17 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
     try {
       if (isSignup) {
-        // Inscription
+        // Sign up
         if (!email || !password || !name) {
           setError("Veuillez remplir tous les champs");
           setIsLoading(false);
           return;
         }
         await apiService.register(email, name, password);
-        // Après inscription, connecter automatiquement
+        // After sign up, log in automatically
         await apiService.login(email, password);
       } else {
-        // Connexion
+        // Sign in
         if (!email || !password) {
           setError("Veuillez remplir tous les champs");
           setIsLoading(false);
@@ -57,7 +57,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         await apiService.login(email, password);
       }
 
-      // Succès : rediriger vers l'application
+      // Success: redirect to the app
       onLogin();
     } catch (err) {
       console.error("Erreur d'authentification:", err);
@@ -90,7 +90,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             "Un code de réinitialisation a été envoyé à votre adresse email. Vérifiez votre boîte de réception."
           );
         } else if (response.reset_code) {
-          // Mode dev : l'email n'est pas configuré, on affiche le code
+          // Dev mode: email is not configured, show the code
           setForgotSuccess(`Code de développement : ${response.reset_code}`);
         } else {
           setForgotSuccess("Si cet email existe, un code de réinitialisation a été envoyé.");
@@ -284,7 +284,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     </motion.div>
   );
 
-  // Hero Section avec SaladThree
+  // Hero Section with SaladThree
   const HeroSection = () => (
     <motion.div
       key={`hero-${animationKey}`}
@@ -306,12 +306,12 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       }}
       className="absolute inset-0 w-full h-full relative overflow-hidden"
     >
-      {/* 3D Background avec SaladThree */}
+      {/* 3D Background with SaladThree */}
       <div className="absolute inset-0 bg-primary/90">
         <SaladThree className="w-full h-full opacity-40" />
       </div>
 
-      {/* Overlay gradient pour améliorer la lisibilité */}
+      {/* Overlay gradient to improve readability */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-primary/60 to-transparent" />
 
       <div className="relative h-full flex flex-col items-center justify-center p-6 sm:p-8 text-white">
@@ -384,7 +384,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         <FormSection />
       </div>
 
-      {/* Modal Mot de passe oublié */}
+      {/* "Forgot password" modal */}
       <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

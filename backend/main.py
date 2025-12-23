@@ -3,10 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Frig-oh API", version="1.0.0")
 
-# Configuration CORS pour permettre les requêtes depuis le frontend React
+# CORS configuration to allow requests from the React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # URL du frontend React
+    allow_origins=["http://localhost:3000"],  # React frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

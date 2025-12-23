@@ -24,7 +24,7 @@ export default function IntroVideo({ onIntroComplete, videoSrc = '/intro_frigo.m
     const onPlay = () => log('play');
     const onError = (e: Event) => {
       log('error', e);
-      // petit délai puis on passe au contenu
+      // short delay, then proceed to content
       window.setTimeout(triggerEnd, 800);
     };
 
@@ -34,16 +34,16 @@ export default function IntroVideo({ onIntroComplete, videoSrc = '/intro_frigo.m
     video.addEventListener('play', onPlay);
     video.addEventListener('error', onError);
 
-    // Fallback: si la vidéo ne démarre pas, passer après 12s
+    // Fallback: if the video doesn't start, proceed after 12s
     const fallback = window.setTimeout(() => {
       triggerEnd();
     }, 12000);
 
-    // Tenter de lancer la vidéo immédiatement
+    // Try to start the video immediately
     const playPromise = video.play();
     if (playPromise && playPromise.catch) {
       playPromise.catch(() => {
-        // Sur certains navigateurs mobiles, l'autoplay peut échouer si non muted
+        // On some mobile browsers, autoplay can fail if not muted
         video.muted = true;
         video.play().catch(() => {});
       });
@@ -100,7 +100,7 @@ export default function IntroVideo({ onIntroComplete, videoSrc = '/intro_frigo.m
         onEnded={handleEnded}
       />
 
-      {/* Flash blanc en fin d'intro */}
+      {/* White flash at the end of the intro */}
       <div
         style={{
           position: 'absolute',
@@ -112,7 +112,7 @@ export default function IntroVideo({ onIntroComplete, videoSrc = '/intro_frigo.m
         }}
       />
 
-      {/* Bouton skip pour sécurité */}
+      {/* Skip button for safety */}
       <button
         onClick={handleSkip}
         style={{

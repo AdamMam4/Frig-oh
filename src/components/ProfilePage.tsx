@@ -32,7 +32,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
   const [loading, setLoading] = useState(true);
   const [showFavorites, setShowFavorites] = useState(false);
 
-  // Modal états
+  // Modal states
   const [showUsernameModal, setShowUsernameModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newUsername, setNewUsername] = useState("");
@@ -66,7 +66,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
     }
   };
 
-  // Modifier le nom d'utilisateur
+  // Update username
   const handleUpdateUsername = async () => {
     if (!newUsername.trim() || newUsername.length < 3) {
       setModalError("Le nom doit contenir au moins 3 caractères");
@@ -92,7 +92,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
     }
   };
 
-  // Demander un code pour changer le mot de passe
+  // Request a code to change the password
   const handleRequestPasswordChange = async () => {
     setModalLoading(true);
     setModalError("");
@@ -103,7 +103,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
       if (result.email_sent) {
         setPasswordStep("verify");
       } else if (result.reset_code) {
-        // Mode dev: afficher le code
+        // Dev mode: display the code
         setDevCode(result.reset_code);
         setPasswordStep("verify");
       }
@@ -114,7 +114,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
     }
   };
 
-  // Vérifier le code et changer le mot de passe
+  // Verify the code and change the password
   const handleVerifyPasswordChange = async () => {
     if (newPassword !== confirmPassword) {
       setModalError("Les mots de passe ne correspondent pas");
@@ -152,7 +152,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
     setModalSuccess("");
   };
 
-  // Si on affiche les favoris
+  // If favorites are displayed
   if (showFavorites) {
     return (
       <div className="flex-1 overflow-y-auto pb-24">
@@ -263,7 +263,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
               <Switch id="theme-mode" checked={theme === "dark"} onCheckedChange={toggleTheme} />
             </div>
 
-            {/* Modifier le nom */}
+            {/* Edit name */}
             <button
               onClick={() => {
                 setNewUsername(userStats?.username || "");
@@ -285,7 +285,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </button>
 
-            {/* Modifier le mot de passe */}
+            {/* Change password */}
             <button
               onClick={() => {
                 resetPasswordModal();
@@ -338,7 +338,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
         </Card>
       </div>
 
-      {/* Modal Modifier le nom */}
+      {/* Edit name modal */}
       <Dialog open={showUsernameModal} onOpenChange={setShowUsernameModal}>
         <DialogContent className="bg-card border-primary/20">
           <DialogHeader>
@@ -367,7 +367,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Modal Modifier le mot de passe */}
+      {/* Change password modal */}
       <Dialog
         open={showPasswordModal}
         onOpenChange={(open) => {

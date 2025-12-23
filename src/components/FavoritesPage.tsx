@@ -28,7 +28,7 @@ export function FavoritesPage({ onBack }: FavoritesPageProps) {
 
     try {
       setLoading(true);
-      // Charger les IDs des favoris et les recettes API en parallèle
+      // Load favorite IDs and API recipes in parallel
       const [ids, favs] = await Promise.all([
         apiService.getFavoriteIds(),
         apiService.getFavorites(),
@@ -54,7 +54,7 @@ export function FavoritesPage({ onBack }: FavoritesPageProps) {
     }
   };
 
-  // Convertir les favoris API au format Recipe pour l'affichage
+  // Convert API favorites to the Recipe format for display
   const convertedApiFavorites: Recipe[] = apiFavorites.map((recipe) => ({
     id: recipe.id || recipe._id,
     name: recipe.title,
@@ -69,10 +69,10 @@ export function FavoritesPage({ onBack }: FavoritesPageProps) {
     isAiGenerated: recipe.is_ai_generated || false,
   }));
 
-  // Filtrer les recettes statiques qui sont en favoris
+  // Filter static recipes that are in favorites
   const staticFavorites = staticRecipes.filter((recipe) => favoriteIds.includes(recipe.id));
 
-  // Combiner les deux listes
+  // Combine both lists
   const allFavorites = [...convertedApiFavorites, ...staticFavorites];
 
   const handleRecipeClick = (recipe: Recipe) => {

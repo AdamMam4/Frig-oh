@@ -25,7 +25,7 @@ async def add_favorite(recipe_id: str, current_user=Depends(auth_service.get_cur
     """Add a recipe to favorites."""
     user_id = str(current_user["_id"])
     
-    # Vérifier si la recette existe (seulement pour les ObjectId valides)
+    # Check if the recipe exists (only for valid ObjectIds)
     if is_valid_object_id(recipe_id):
         recipe = await recipes_collection.find_one({"_id": ObjectId(recipe_id)})
         if not recipe:
@@ -33,9 +33,9 @@ async def add_favorite(recipe_id: str, current_user=Depends(auth_service.get_cur
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Recette non trouvée"
             )
-    # Pour les recettes statiques (IDs simples), on les accepte directement
+    # For static recipes (simple IDs), accept them directly
     
-    # Vérifier si déjà en favoris
+    # Check if already in favorites
     existing = await favorites_collection.find_one({
         "user_id": user_id,
         "recipe_id": recipe_id
@@ -47,7 +47,7 @@ async def add_favorite(recipe_id: str, current_user=Depends(auth_service.get_cur
             detail="Cette recette est déjà dans vos favoris"
         )
     
-    # Ajouter aux favoris
+    # Add to favorites
     favorite = {
         "user_id": user_id,
         "recipe_id": recipe_id,
@@ -82,14 +82,14 @@ async def get_favorites(current_user=Depends(auth_service.get_current_user)):
     """Get all favorite recipes for the current user."""
     user_id = str(current_user["_id"])
     
-    # Récupérer tous les favoris de l'utilisateur
+    # Retrieve all the user's favorites
     favorites_cursor = favorites_collection.find({"user_id": user_id})
     favorites = await favorites_cursor.to_list(length=None)
     
     if not favorites:
         return []
     
-    # Séparer les IDs MongoDB valides des IDs statiques
+    # Separate valid MongoDB IDs from static IDs
     mongo_ids = []
     static_ids = []
     for fav in favorites:
@@ -100,12 +100,12 @@ async def get_favorites(current_user=Depends(auth_service.get_current_user)):
     
     recipes = []
     
-    # Récupérer les recettes de la BDD
+    # Retrieve recipes from the database
     if mongo_ids:
         recipes_cursor = recipes_collection.find({"_id": {"$in": mongo_ids}})
         db_recipes = await recipes_cursor.to_list(length=None)
         
-        # Convertir les ObjectId en strings
+        # Convert ObjectIds to strings
         for recipe in db_recipes:
             if "_id" in recipe:
                 recipe["_id"] = str(recipe["_id"])
@@ -114,8 +114,8 @@ async def get_favorites(current_user=Depends(auth_service.get_current_user)):
         
         recipes.extend(db_recipes)
     
-    # Note: Les recettes statiques sont gérées côté frontend
-    # On retourne juste les recettes de la BDD
+    # Note: Static recipes are handled on the frontend
+    # We only return the database recipes
     
     return recipes
 
