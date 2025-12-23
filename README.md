@@ -95,7 +95,61 @@ For more detailed Docker setup information, see [DOCKER_SETUP.md](DOCKER_SETUP.m
 
 ## 💻 Local Development (Without Docker)
 
-### Available Scripts
+### Backend Setup
+
+1. **Navigate to the backend directory**
+   ```bash
+   cd backend
+   ```
+
+2. **Create a virtual environment**
+   ```bash
+   python -m venv venv
+   ```
+
+3. **Activate the virtual environment**
+   - Windows PowerShell:
+     ```powershell
+     .\venv\Scripts\Activate.ps1
+     ```
+   - Windows CMD:
+     ```cmd
+     .\venv\Scripts\activate.bat
+     ```
+   - Linux/Mac:
+     ```bash
+     source venv/bin/activate
+     ```
+
+4. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+5. **Configure environment variables**
+   
+   Create a `.env` file in the `backend` directory with your configuration:
+   ```env
+   MONGO_URI=mongodb://localhost:27017/frigoh
+   SECRET_KEY=your_secret_key_here
+   GOOGLE_API_KEY=your_gemini_api_key_here
+   ```
+   
+   For detailed configuration options, see [backend/SETUP.md](backend/SETUP.md)
+
+6. **Start the backend server**
+   ```bash
+   python run.py
+   ```
+   
+   The API will be available at: **http://localhost:8000**
+
+7. **Access API Documentation**
+   - **Interactive Swagger UI**: http://localhost:8000/docs
+   - **ReDoc**: http://localhost:8000/redoc
+   - **Written Documentation**: [backend/API_DOCUMENTATION.md](backend/API_DOCUMENTATION.md)
+
+### Frontend Setup
 
 In the project directory, you can run:
 
