@@ -98,11 +98,13 @@ For more detailed Docker setup information, see [DOCKER_SETUP.md](DOCKER_SETUP.m
 ### Backend Setup
 
 1. **Navigate to the backend directory**
+
    ```bash
    cd backend
    ```
 
 2. **Create a virtual environment**
+
    ```bash
    python -m venv venv
    ```
@@ -122,26 +124,29 @@ For more detailed Docker setup information, see [DOCKER_SETUP.md](DOCKER_SETUP.m
      ```
 
 4. **Install dependencies**
+
    ```bash
    pip install -r requirements.txt
    ```
 
 5. **Configure environment variables**
-   
+
    Create a `.env` file in the `backend` directory with your configuration:
+
    ```env
    MONGO_URI=mongodb://localhost:27017/frigoh
    SECRET_KEY=your_secret_key_here
    GOOGLE_API_KEY=your_gemini_api_key_here
    ```
-   
+
    For detailed configuration options, see [backend/SETUP.md](backend/SETUP.md)
 
 6. **Start the backend server**
+
    ```bash
    python run.py
    ```
-   
+
    The API will be available at: **http://localhost:8000**
 
 7. **Access API Documentation**
