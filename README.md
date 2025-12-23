@@ -15,31 +15,13 @@ The easiest way to run the entire application stack is using Docker.
 
 1. **Create Environment Configuration**
 
-   Create a `.env` file in the `backend` directory with the following variables:
+   Add the `.env` file in the `backend` directory with the following variables:
 
-   ```env
-   # MongoDB Configuration
-   MONGO_ROOT_USERNAME=admin
-   MONGO_ROOT_PASSWORD=your_secure_password
-
-   # Backend Configuration
-   SECRET_KEY=your_secret_key_here_change_in_production
-   GOOGLE_API_KEY=your_google_api_key_here
-
-   # Optional: Frontend Configuration
-   REACT_APP_API_URL=http://localhost:8000
-   ```
 
 2. **Build and Start All Services**
 
    ```bash
    docker-compose up --build
-   ```
-
-   Or run in detached mode (background):
-
-   ```bash
-   docker-compose up -d --build
    ```
 
 3. **Access the Application**
