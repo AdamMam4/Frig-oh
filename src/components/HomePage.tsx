@@ -17,19 +17,13 @@ interface HomePageProps {
 }
 
 export function HomePage({ ingredients, setIngredients }: HomePageProps) {
-  const [inputValue, setInputValue] = useState("");
-  const [suggestedRecipes, setSuggestedRecipes] = useState<
-    (Recipe & { matchPercentage?: number })[]
-  >([]);
+  const [inputValue, setInputValue] = useState('');
+  const [suggestedRecipes, setSuggestedRecipes] = useState<(Recipe & { matchPercentage?: number })[]>([]);
   const [showAiRecipes, setShowAiRecipes] = useState(false);
-  const [selectedRecipe, setSelectedRecipe] = useState<
-    (Recipe & { matchPercentage?: number }) | null
-  >(null);
+  const [selectedRecipe, setSelectedRecipe] = useState<(Recipe & { matchPercentage?: number }) | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [ingredientSuggestions, setIngredientSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // New states for recipe preview flow
   const [recipePreview, setRecipePreview] = useState<RecipePreview | null>(null);
@@ -39,20 +33,20 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
   const addIngredient = (ingredientToAdd?: string) => {
     const ingredient = ingredientToAdd || inputValue;
     const trimmedIngredient = ingredient.trim().toLowerCase();
-
-    // Vérifier si l'ingrédient n'est pas vide et n'est pas déjà dans la liste
+    
+    // Check that the ingredient is not empty and not already in the list
     if (!trimmedIngredient || ingredients.includes(trimmedIngredient)) {
       return;
     }
 
-    // Vérifier si l'ingrédient est valide
+    // Check if the ingredient is valid
     if (isValidIngredient(trimmedIngredient)) {
       setIngredients([...ingredients, trimmedIngredient]);
-      setInputValue("");
+      setInputValue('');
       setShowSuggestions(false);
       setIngredientSuggestions([]);
     } else {
-      // Trouver des suggestions similaires
+      // Find similar suggestions
       const suggestions = findSimilarIngredients(trimmedIngredient);
       if (suggestions.length > 0) {
         setIngredientSuggestions(suggestions);
@@ -69,23 +63,23 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
   };
 
   const removeIngredient = (ingredient: string) => {
-    setIngredients(ingredients.filter((i) => i !== ingredient));
+    setIngredients(ingredients.filter(i => i !== ingredient));
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       addIngredient();
     }
   };
 
   const findRecipes = () => {
-    const recipesWithMatch = recipes.map((recipe) => {
+    const recipesWithMatch = recipes.map(recipe => {
       const matchPercentage = calculateMatchPercentage(recipe, ingredients);
       return { ...recipe, matchPercentage };
     });
 
     const filtered = recipesWithMatch
-      .filter((recipe) => recipe.matchPercentage > 0)
+      .filter(recipe => recipe.matchPercentage > 0)
       .sort((a, b) => b.matchPercentage - a.matchPercentage);
 
     setSuggestedRecipes(filtered);
@@ -185,7 +179,7 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
           </p>
         </div>
 
-        {/* Search Bar */}
+          {/* Search Bar */}
         <div className="max-w-2xl mx-auto space-y-3">
           <div className="flex gap-2 sm:gap-3">
             <div className="relative flex-1">
@@ -201,7 +195,7 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
                 className="pl-9 sm:pl-12 h-11 sm:h-12 lg:h-14 rounded-full bg-card border-border text-sm sm:text-base"
               />
             </div>
-            <Button
+            <Button 
               onClick={() => addIngredient()}
               className="h-11 sm:h-12 lg:h-14 px-5 sm:px-6 lg:px-8 rounded-full bg-primary hover:bg-primary/90 text-black text-sm sm:text-base"
             >
@@ -249,7 +243,7 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
                   <Button
                     onClick={() => {
                       setShowSuggestions(false);
-                      setInputValue("");
+                      setInputValue('');
                     }}
                     variant="ghost"
                     size="sm"
@@ -266,8 +260,8 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
           {ingredients.length > 0 && (
             <div className="flex flex-wrap gap-2 justify-center">
               {ingredients.map((ingredient, index) => (
-                <Badge
-                  key={index}
+                <Badge 
+                  key={index} 
                   className="px-4 py-2 text-sm bg-card border border-primary/30 text-foreground hover:bg-primary/10"
                 >
                   {ingredient}
@@ -285,7 +279,7 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
 
         {/* Action Buttons */}
         <div className="flex gap-3 sm:gap-4 max-w-2xl mx-auto">
-          <Button
+          <Button 
             onClick={findRecipes}
             disabled={ingredients.length === 0}
             className="flex-1 h-11 sm:h-12 lg:h-14 rounded-full bg-primary hover:bg-primary/90 text-black text-sm sm:text-base"
@@ -294,15 +288,15 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
             <Search className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
             Trouver une recette
           </Button>
-          <Button
+          <Button 
             onClick={generateAiRecipes}
-            disabled={ingredients.length === 0 || isGenerating}
+            disabled={ingredients.length === 0}
             variant="outline"
             className="flex-1 h-11 sm:h-12 lg:h-14 rounded-full border-primary/30 hover:bg-primary/10 text-sm sm:text-base"
             size="lg"
           >
             <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-            {isGenerating ? "Génération en cours..." : "Générer avec IA"}
+            Générer avec IA
           </Button>
         </div>
 
@@ -421,7 +415,7 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
           <div className="space-y-4 sm:space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl sm:text-2xl lg:text-3xl display-font">
-                {showAiRecipes ? "Recettes générées par IA" : "Recettes suggérées"}
+                {showAiRecipes ? 'Recettes générées par IA' : 'Recettes suggérées'}
               </h2>
               <Badge className="px-3 py-1 sm:px-4 sm:py-2 bg-primary/20 text-primary border-primary/30 text-xs sm:text-sm">
                 {suggestedRecipes.length} résultats
@@ -451,9 +445,7 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
               <ChefHat className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-primary" />
             </div>
             <div>
-              <h3 className="text-xl sm:text-2xl mb-1.5 sm:mb-2 display-font">
-                Recherchez des recettes
-              </h3>
+              <h3 className="text-xl sm:text-2xl mb-1.5 sm:mb-2 display-font">Recherchez des recettes</h3>
               <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">
                 Cliquez sur "Trouver une recette" ou "Générer avec IA"
               </p>
@@ -468,9 +460,7 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
               <Search className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-primary" />
             </div>
             <div>
-              <h3 className="text-xl sm:text-2xl mb-1.5 sm:mb-2 display-font">
-                Commencez votre aventure culinaire
-              </h3>
+              <h3 className="text-xl sm:text-2xl mb-1.5 sm:mb-2 display-font">Commencez votre aventure culinaire</h3>
               <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">
                 Saisissez les ingrédients que vous avez chez vous
               </p>

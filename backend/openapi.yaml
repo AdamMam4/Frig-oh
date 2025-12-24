@@ -1,0 +1,574 @@
+openapi: 3.0.3
+info:
+  title: Frig-oh Recipe API
+  description: OpenAPI specification for the Frig-oh backend (FastAPI). Contains authentication, recipes, image/AI analysis and favorites endpoints.
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserBase:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+      required: [email, username]
+
+    UserCreate:
+      allOf:
+        - $ref: '#/components/schemas/UserBase'
+        - type: object
+          properties:
+            password:
+              type: string
+              minLength: 6
+          required: [password]
+
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required: [email, password]
+
+    ForgotPasswordRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required: [email]
+
+    ResetPasswordRequest:
+      type: object
+      properties:
+        token:
+          type: string
+        new_password:
+          type: string
+          minLength: 6
+      required: [token, new_password]
+
+    UpdateUsernameRequest:
+      type: object
+      properties:
+        new_username:
+          type: string
+          minLength: 3
+          maxLength: 50
+      required: [new_username]
+
+    VerifyPasswordChangeRequest:
+      type: object
+      properties:
+        code:
+          type: string
+        new_password:
+          type: string
+          minLength: 6
+      required: [code, new_password]
+
+    UserStats:
+      type: object
+      properties:
+        email:
+          type: string
+        username:
+          type: string
+        total_recipes:
+          type: integer
+        ai_generated_recipes:
+          type: integer
+        favorites_count:
+          type: integer
+
+    RecipeBase:
+      type: object
+      properties:
+        title:
+          type: string
+        ingredients:
+          type: array
+          items:
+            type: string
+        instructions:
+          type: array
+          items:
+            type: string
+        cooking_time:
+          type: integer
+          description: Cooking time in minutes
+        servings:
+          type: integer
+      required: [title, ingredients, instructions, cooking_time, servings]
+
+    RecipeCreate:
+      allOf:
+        - $ref: '#/components/schemas/RecipeBase'
+
+    Recipe:
+      allOf:
+        - $ref: '#/components/schemas/RecipeBase'
+        - type: object
+          properties:
+            _id:
+              type: string
+            user_id:
+              type: string
+            created_at:
+              type: string
+              format: date-time
+            is_ai_generated:
+              type: boolean
+
+    AddFavoriteResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        id:
+          type: string
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+    AnalyzeResponse:
+      type: object
+      properties:
+        ingredients:
+          type: array
+          items:
+            type: string
+        count:
+          type: integer
+        message:
+          type: string
+
+    FavoriteIdsResponse:
+      type: object
+      properties:
+        favorite_ids:
+          type: array
+          items:
+            type: string
+
+paths:
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '200':
+          description: Created user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserBase'
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  token_type:
+                    type: string
+                required: [access_token, token_type]
+
+  /auth/forgot-password:
+    post:
+      tags: [Authentication]
+      summary: Request a password reset code (sent by email)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: Password reset requested (email may be sent)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  email_sent:
+                    type: boolean
+                  reset_code:
+                    type: string
+
+  /auth/reset-password:
+    post:
+      tags: [Authentication]
+      summary: Reset password using a token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /auth/me:
+    get:
+      tags: [Authentication]
+      summary: Get current user stats
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserStats'
+
+  /auth/update-username:
+    put:
+      tags: [Authentication]
+      summary: Update current user's username
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUsernameRequest'
+      responses:
+        '200':
+          description: Username updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  username:
+                    type: string
+
+  /auth/request-password-change:
+    post:
+      tags: [Authentication]
+      summary: Request a verification code to change password (authenticated)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Verification code requested
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  email_sent:
+                    type: boolean
+                  reset_code:
+                    type: string
+
+  /auth/verify-password-change:
+    post:
+      tags: [Authentication]
+      summary: Verify code and change password for authenticated user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyPasswordChangeRequest'
+      responses:
+        '200':
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /recipes/:
+    post:
+      tags: [Recipes]
+      summary: Create a recipe
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeCreate'
+      responses:
+        '200':
+          description: Created recipe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+
+    get:
+      tags: [Recipes]
+      summary: Get user's recipes
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of recipes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recipe'
+
+  /recipes/generate:
+    post:
+      tags: [Recipes]
+      summary: Generate and save a recipe from a list of ingredients
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+      responses:
+        '200':
+          description: Generated recipe saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+
+  /recipes/{recipe_id}:
+    get:
+      tags: [Recipes]
+      summary: Get a single recipe by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: recipe_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Recipe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+        '403':
+          description: Forbidden
+
+  /recipes/analyze-ingredients:
+    post:
+      tags: [Recipes]
+      summary: Analyze image to detect ingredients
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Ingredients detected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyzeResponse'
+        '400':
+          description: Bad request (e.g. not an image or too large)
+
+  /recipes/generate-from-photo:
+    post:
+      tags: [Recipes]
+      summary: Analyze photo and generate a recipe (combined flow)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Detected ingredients and saved recipe
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detected_ingredients:
+                    type: array
+                    items:
+                      type: string
+                  recipe:
+                    $ref: '#/components/schemas/Recipe'
+                  message:
+                    type: string
+
+  /favorites/{recipe_id}:
+    post:
+      tags: [Favorites]
+      summary: Add a recipe to favorites
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: recipe_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Favorite added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddFavoriteResponse'
+
+    delete:
+      tags: [Favorites]
+      summary: Remove a recipe from favorites
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: recipe_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Favorite removed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /favorites/:
+    get:
+      tags: [Favorites]
+      summary: Get favorite recipes for current user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of favorite recipes (database entries)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recipe'
+
+  /favorites/check/{recipe_id}:
+    get:
+      tags: [Favorites]
+      summary: Check if a recipe is favorite for current user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: recipe_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Favorite check result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  is_favorite:
+                    type: boolean
+
+  /favorites/ids:
+    get:
+      tags: [Favorites]
+      summary: Get favorite recipe IDs for current user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Favorite IDs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavoriteIdsResponse'
+
+tags:
+  - name: Authentication
+    description: Endpoints for registering, logging in and managing the current user
+  - name: Recipes
+    description: Create, list, retrieve and generate recipes (AI-backed features)
+  - name: Favorites
+    description: Add/remove and list favorite recipes for an authenticated user

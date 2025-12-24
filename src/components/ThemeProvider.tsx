@@ -13,7 +13,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('dark');
 
   useEffect(() => {
-    // Récupérer le thème sauvegardé, sinon utiliser 'dark' par défaut
+    // Retrieve saved theme, otherwise use 'dark' by default
     const savedTheme = (localStorage.getItem('theme') as Theme) || 'dark';
     
     setTheme(savedTheme);

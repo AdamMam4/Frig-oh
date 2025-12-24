@@ -162,7 +162,7 @@ export function RecipeDetail({
           </DialogTitle>
         </DialogHeader>
 
-        {/* Image - hauteur contrainte sur tous les écrans (évite qu'elle cache le contenu) */}
+        {/* Image - constrained height on all screens (prevents covering content) */}
         <div className="relative w-full h-44 sm:h-56 md:h-64 lg:h-72 max-h-[35vh] overflow-hidden rounded-lg sm:rounded-2xl">
           <ImageWithFallback
             src={recipe.image}
@@ -336,7 +336,7 @@ export function RecipeDetail({
           </div>
         </div>
 
-        {/* Ingredients - compact sur mobile */}
+        {/* Ingredients - compact on mobile */}
         <div className="space-y-2 sm:space-y-4">
           <h3 className="text-base sm:text-2xl display-font text-primary">Ingrédients</h3>
           <div className="space-y-1 sm:space-y-2">
@@ -357,11 +357,11 @@ export function RecipeDetail({
 
         <Separator className="bg-primary/20" />
 
-        {/* Instructions - compact sur mobile */}
+        {/* Instructions - compact on mobile */}
         <div className="space-y-2 sm:space-y-4">
           <h3 className="text-base sm:text-2xl display-font text-primary">Préparation</h3>
           <ol className="space-y-2 sm:space-y-4">
-            {(recipe.instructions || recipe.steps || []).map((instruction, index) => (
+            {recipe.instructions.map((instruction, index) => (
               <li key={index} className="flex gap-2 sm:gap-4">
                 <span className="flex items-center justify-center w-5 h-5 sm:w-10 sm:h-10 rounded-full bg-primary text-black text-xs sm:text-base font-semibold flex-shrink-0">
                   {index + 1}

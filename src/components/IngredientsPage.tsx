@@ -1,8 +1,18 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Card } from "./ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 import {
   Search,
   X,
@@ -14,9 +24,9 @@ import {
   Cookie,
   Sparkles,
   Loader2,
+  Camera,
 } from "lucide-react";
 import { apiService } from "../services/api";
-import { useToast } from "../hooks/use-toast";
 
 interface IngredientsPageProps {
   ingredients: string[];
@@ -86,7 +96,10 @@ export function IngredientsPage({ ingredients, setIngredients, onNavigate }: Ing
   const [inputValue, setInputValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [generating, setGenerating] = useState(false);
-  const { toast } = useToast();
+  const [analyzingImage, setAnalyzingImage] = useState(false);
+  const [detectedIngredients, setDetectedIngredients] = useState<string[]>([]);
+  const [showIngredientsDialog, setShowIngredientsDialog] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addIngredient = (ingredient: string) => {
     const normalizedIngredient = ingredient.trim().toLowerCase();
@@ -106,21 +119,13 @@ export function IngredientsPage({ ingredients, setIngredients, onNavigate }: Ing
 
     if (ingredients.length === 0) {
       console.log("⚠️ Aucun ingrédient sélectionné");
-      toast({
-        title: "Aucun ingrédient",
-        description: "Veuillez ajouter au moins un ingrédient pour générer une recette",
-        variant: "destructive",
-      });
+      alert("Veuillez ajouter au moins un ingrédient pour générer une recette");
       return;
     }
 
     if (!apiService.isAuthenticated()) {
       console.log("⚠️ Utilisateur non authentifié");
-      toast({
-        title: "Connexion requise",
-        description: "Vous devez être connecté pour générer une recette avec l'IA",
-        variant: "destructive",
-      });
+      alert("Vous devez être connecté pour générer une recette avec l'IA");
       return;
     }
 
@@ -148,13 +153,9 @@ export function IngredientsPage({ ingredients, setIngredients, onNavigate }: Ing
 
       console.log("💾 Recette sauvegardée:", savedRecipe);
 
-      toast({
-        title: "✨ Recette générée !",
-        description: `"${recipe.title}" a été créée et ajoutée à votre collection`,
-      });
+      alert(`✨ Recette générée ! "${recipe.title}" a été créée et ajoutée à votre collection`);
 
       console.log("⏳ Redirection vers la page recettes dans 1.5s...");
-      // Rediriger vers la page des recettes après 1 seconde
       setTimeout(() => {
         if (onNavigate) {
           console.log("➡️ Navigation vers la page recettes");
@@ -164,11 +165,7 @@ export function IngredientsPage({ ingredients, setIngredients, onNavigate }: Ing
     } catch (error: any) {
       console.error("❌ Erreur lors de la génération:", error);
       console.error("📄 Détails de l'erreur:", error.message);
-      toast({
-        title: "Erreur",
-        description: error.message || "Impossible de générer la recette",
-        variant: "destructive",
-      });
+      alert(error.message || "Impossible de générer la recette");
     } finally {
       setGenerating(false);
       console.log("🏁 Fin du processus de génération");
@@ -179,6 +176,72 @@ export function IngredientsPage({ ingredients, setIngredients, onNavigate }: Ing
     if (e.key === "Enter") {
       addIngredient(inputValue);
     }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      alert("Veuillez sélectionner une image (JPG, PNG, etc.)");
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert("L'image ne doit pas dépasser 10 MB");
+      return;
+    }
+
+    if (!apiService.isAuthenticated()) {
+      alert("Vous devez être connecté pour analyser des images");
+      return;
+    }
+
+    try {
+      setAnalyzingImage(true);
+      console.log("📸 Analyse de l'image:", file.name);
+
+      const detectedIngs = await apiService.analyzeIngredientsFromImage(file);
+
+      console.log("✅ Ingrédients détectés:", detectedIngs);
+
+      if (detectedIngs.length === 0) {
+        alert("Aucun ingrédient détecté. Essayez avec une autre image plus claire");
+      } else {
+        setDetectedIngredients(detectedIngs);
+        setShowIngredientsDialog(true);
+      }
+    } catch (error: any) {
+      console.error("❌ Erreur lors de l'analyse:", error);
+      alert(error.message || "Impossible d'analyser l'image");
+    } finally {
+      setAnalyzingImage(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleConfirmIngredients = () => {
+    // Add detected ingredients to the current list
+    const newIngredients = [...ingredients];
+    detectedIngredients.forEach((ing) => {
+      const normalized = ing.trim().toLowerCase();
+      if (normalized && !newIngredients.includes(normalized)) {
+        newIngredients.push(normalized);
+      }
+    });
+    setIngredients(newIngredients);
+    setShowIngredientsDialog(false);
+    console.log(`✅ ${detectedIngredients.length} ingrédient(s) ajouté(s) à votre sélection`);
+  };
+
+  const handleCancelIngredients = () => {
+    setShowIngredientsDialog(false);
+    setDetectedIngredients([]);
   };
 
   const filteredCommonIngredients = commonIngredients.filter((item) =>
@@ -223,6 +286,25 @@ export function IngredientsPage({ ingredients, setIngredients, onNavigate }: Ing
           >
             Ajouter
           </Button>
+          <Button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={analyzingImage}
+            className="h-14 px-6 rounded-full bg-primary hover:bg-primary/90 text-black"
+            title="Analyser une photo"
+          >
+            {analyzingImage ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <Camera className="w-5 h-5" />
+            )}
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="hidden"
+          />
         </div>
 
         {/* My Ingredients */}
@@ -329,6 +411,31 @@ export function IngredientsPage({ ingredients, setIngredients, onNavigate }: Ing
           })}
         </div>
       </div>
+
+      {/* Ingredients Detection Dialog */}
+      <AlertDialog open={showIngredientsDialog} onOpenChange={setShowIngredientsDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>🎉 Ingrédients détectés !</AlertDialogTitle>
+            <AlertDialogDescription>
+              L'IA a identifié les ingrédients suivants dans votre image :
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex flex-wrap gap-2 my-4">
+            {detectedIngredients.map((ingredient, index) => (
+              <Badge key={index} className="px-4 py-2 bg-primary text-black border-0">
+                {ingredient}
+              </Badge>
+            ))}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelIngredients}>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmIngredients}>
+              Ajouter à ma sélection
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

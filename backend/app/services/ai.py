@@ -182,3 +182,83 @@ Exemple de format attendu:
         except Exception as e:
             print(f"❌ GEMINI ERREUR: {type(e).__name__}: {str(e)}")
             return fallback(ingredients)
+
+    async def analyze_ingredients_from_image(self, image_data: bytes) -> List[str]:
+        """
+        Analyze an image and detect ingredients using Gemini Vision.
+        
+        Args:
+            image_data: Binary image data
+            
+        Returns:
+            List of detected ingredient names
+        """
+        def fallback() -> List[str]:
+            print("⚠️ FALLBACK: Returning sample ingredients (Gemini Vision unavailable)")
+            return ["tomates", "oignons", "ail", "basilic", "huile d'olive"]
+        
+        if not self.model:
+            print(f"❌ GEMINI NON DISPONIBLE pour l'analyse d'image")
+            return fallback()
+        
+        try:
+            print(f"✅ GEMINI VISION: Analyse d'une image de {len(image_data)} bytes")
+            
+            # Prepare image for Gemini
+            import PIL.Image
+            import io
+            image = PIL.Image.open(io.BytesIO(image_data))
+            
+            prompt = """Analyse cette image et identifie TOUS les ingrédients visibles.
+
+Réponds UNIQUEMENT avec un objet JSON contenant une liste d'ingrédients en français.
+Format attendu:
+{"ingredients": ["ingredient1", "ingredient2", ...]}
+
+Règles:
+- Liste TOUS les ingrédients que tu vois
+- Utilise des noms simples en français (ex: "tomates", "poulet", "riz")
+- Si tu vois des quantités, ignore-les (juste le nom)
+- Ne mets PAS de markdown, juste le JSON brut"""
+
+            gen_fn = getattr(self.model, 'generate_content_async', None)
+            if gen_fn is not None:
+                resp = await gen_fn([prompt, image])
+            else:
+                resp = await self.model.generate_content([prompt, image])
+
+            # Extract text from response
+            text = None
+            if hasattr(resp, 'text'):
+                try:
+                    text = resp.text
+                except Exception:
+                    text = None
+            if not text and hasattr(resp, 'parts'):
+                try:
+                    text = "\n".join(p.text for p in resp.parts if getattr(p, 'text', None))
+                except Exception:
+                    text = None
+
+            if not text:
+                print("⚠️ GEMINI VISION: Pas de texte dans la réponse")
+                return fallback()
+
+            # Parse JSON
+            cleaned = _strip_code_fences(text).strip()
+            m = re.search(r"\{.*\}", cleaned, flags=re.DOTALL)
+            json_text = m.group(0) if m else cleaned
+
+            result = json.loads(json_text)
+            ingredients = result.get("ingredients", [])
+            
+            if not ingredients:
+                print("⚠️ GEMINI VISION: Aucun ingrédient détecté")
+                return fallback()
+            
+            print(f"✅ GEMINI VISION: {len(ingredients)} ingrédients détectés")
+            return ingredients
+            
+        except Exception as e:
+            print(f"❌ GEMINI VISION ERREUR: {type(e).__name__}: {str(e)}")
+            return fallback()

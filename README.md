@@ -1,43 +1,156 @@
-# Getting Started with Create React App
+# Frig-oh
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Frig-oh is a web application (React frontend + FastAPI backend) for managing and generating recipes, detecting ingredients from photos, and delivering visual experiences (3D models and an intro video).
 
-## Available Scripts
+This README provides a concise, English-only overview of the project, the technologies used, how to run it, and where to look in the codebase.
 
-In the project directory, you can run:
+## Technologies
 
-### `npm start`
+- Backend: Python 3.x, FastAPI, Uvicorn, Pydantic, Motor (async Mongo client) / PyMongo, pytest
+- AI: Google Gemini (gemini model), Pillow for image handling; safe JSON parsing and fallback templates
+- Frontend: React (v18+/v19), TypeScript, Tailwind CSS, Framer Motion, Three.js, Radix UI, lucide-react
+- Dev & tooling: Docker / Docker Compose, Node/npm, ESLint, Prettier, TypeScript, CI-friendly test tooling
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Key structure (entry points)
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+- `backend/`
+  - `app/main.py`, `run.py` — FastAPI startup
+  - `app/routes/` — API endpoints (auth, recipes, image upload)
+  - `app/services/ai.py` — Gemini integration and secure parsing
+  - `app/services/recipe.py` — recipe business logic
+  - `app/database.py`, `app/models.py` — MongoDB and Pydantic models
+  - `tests/` — pytest test suite (image/AI and recipes)
+- `src/` (frontend)
+  - `index.tsx`, `App.tsx` — React entry
+  - `components/` — pages and components (RecipesPage, RecipeDetail, RecipeCard, SaladThree, IntroVideo, etc.)
+  - `data/` — sample recipes and ingredients
+  - `styles/globals.css` — Tailwind and custom CSS
+  - `services/api.ts` — API wrapper for backend calls
+- `package.json` — frontend dependencies (React, three, framer-motion, tailwind, radix, lucide)
+- `backend/requirements.txt` — Python dependencies
 
-### `npm test`
+## Features (brief)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- Backend
+  - JWT authentication, recipe CRUD, favorites, user profiles
+  - Image upload -> AI ingredient detection
+  - Recipe generation via AI with local fallback
+  - Pytest tests for key flows
 
-### `npm run build`
+- Frontend
+  - Recipe listing, search, filtering
+  - Recipe detail modal (`RecipeDetail`)
+  - Favorites synced with backend
+  - Utility components (ImageWithFallback, ThemeProvider)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- Animations / Graphics
+  - `SaladThree.tsx`: three.js — loads a GLB model, recenters/scales it, auto-rotates, drag-to-rotate with easing, and performs proper cleanup
+  - `IntroVideo.tsx`: full-screen intro video with fallback handling and a skip button
+  - UI transitions use Framer Motion and Tailwind animations
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Linters & Formatters
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+This project uses ESLint and Prettier for static analysis and automated formatting.
 
-### `npm run eject`
+- ESLint
+  - Core packages present: `eslint`, `@eslint/js` and plugins such as `eslint-plugin-react`, `eslint-plugin-import`.
+  - Configuration: the project extends Create React App defaults (`react-app`, `react-app/jest`) via `package.json`.
+  - Purpose: catch likely bugs, enforce best practices and maintain code quality for JS/TS files.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+- Prettier
+  - Package: `prettier` with `eslint-plugin-prettier` and `eslint-config-prettier` to avoid rule conflicts.
+  - Purpose: automatic, consistent code formatting (spacing, quotes, trailing commas, etc.).
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- TypeScript linting
+  - The repo lists a `typescript-eslint` entry in devDependencies; the canonical ESLint TypeScript packages are `@typescript-eslint/parser` and `@typescript-eslint/eslint-plugin` if you enable TypeScript-specific rules.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+Scripts (see `package.json`)
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```bash
+npm run lint       # runs: eslint .
+npm run lint:fix   # runs: eslint . --fix
+npm run format     # runs: prettier --write "src/**/*.{js,jsx,ts,tsx,json,css,md}"
+npm run check      # runs lint + format
+```
+
+How to run (project root):
+
+```powershell
+npm install
+npm run lint
+npm run lint:fix
+npm run format
+```
+
+Editor integration
+
+For the best developer experience enable ESLint and Prettier extensions in your editor and enable format-on-save.
+
+Note: there are no pre-commit hooks configured in this repo by default.
+
+## Important environment variables
+
+- Backend (`backend/.env` created from `.env.example`):
+  - `MONGO_URI` — MongoDB connection string
+  - `SECRET_KEY` — JWT secret
+  - `GEMINI_API_KEY` — Google Gemini API key (optional; the code has a fallback)
+
+> Do not commit secrets to the repository.
+
+## Quick start
+
+With Docker (recommended if available):
+
+```powershell
+docker-compose up --build
+```
+
+Backend (local, without Docker):
+
+```powershell
+cd backend
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+# copy .env.example -> .env and fill GEMINI_API_KEY and MONGO_URI
+python run.py
+```
+
+Frontend (local):
+
+```powershell
+npm install
+npm start
+# open http://localhost:3000
+```
+
+## Tests
+
+Backend:
+
+```powershell
+cd backend
+pytest -v
+```
+
+Frontend:
+
+```powershell
+npm test
+```
+
+## Technical notes and attention points
+
+- `backend/app/services/ai.py` strips code fences and parses JSON safely (no eval). A fallback exists when Gemini is unavailable.
+- `SaladThree.tsx` properly disposes geometries and materials on unmount to avoid memory leaks.
+- Some UI text and labels remain in French; standardize language on a dedicated branch with atomic commits.
+- Install frontend dependencies before running `npm start` to avoid type/module errors.
+
+## Recommended first files to read
+
+1. `backend/app/services/ai.py` — AI pipeline (image -> ingredients, recipe generation)
+2. `backend/app/routes/recipes.py` — API endpoints used by the frontend
+3. `src/components/RecipesPage.tsx` and `src/components/RecipeDetail.tsx` — main UI flow
 
 ## Learn More
 

@@ -16,7 +16,6 @@ export function FavoritesPage({ onBack }: FavoritesPageProps) {
   const [apiFavorites, setApiFavorites] = useState<any[]>([]);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     loadFavorites();
@@ -30,7 +29,7 @@ export function FavoritesPage({ onBack }: FavoritesPageProps) {
 
     try {
       setLoading(true);
-      // Charger les IDs des favoris et les recettes API en parallèle
+      // Load favorite IDs and API recipes in parallel
       const [ids, favs] = await Promise.all([
         apiService.getFavoriteIds(),
         apiService.getFavorites(),
@@ -39,11 +38,7 @@ export function FavoritesPage({ onBack }: FavoritesPageProps) {
       setApiFavorites(favs);
     } catch (error: any) {
       console.error("Erreur lors du chargement des favoris:", error);
-      toast({
-        title: "Erreur",
-        description: error.message || "Impossible de charger vos favoris",
-        variant: "destructive",
-      });
+      console.error("Impossible de charger vos favoris:", error.message);
     } finally {
       setLoading(false);
     }
@@ -54,16 +49,9 @@ export function FavoritesPage({ onBack }: FavoritesPageProps) {
       await apiService.removeFavorite(recipeId);
       setFavoriteIds(favoriteIds.filter((id) => id !== recipeId));
       setApiFavorites(apiFavorites.filter((f) => (f.id || f._id) !== recipeId));
-      toast({
-        title: "Succès",
-        description: "Recette retirée des favoris",
-      });
+      console.log("✅ Recette retirée des favoris");
     } catch (error: any) {
-      toast({
-        title: "Erreur",
-        description: error.message || "Impossible de retirer des favoris",
-        variant: "destructive",
-      });
+      console.error("❌ Impossible de retirer des favoris:", error.message);
     }
   };
 
@@ -90,10 +78,10 @@ export function FavoritesPage({ onBack }: FavoritesPageProps) {
     };
   });
 
-  // Filtrer les recettes statiques qui sont en favoris
+  // Filter static recipes that are in favorites
   const staticFavorites = staticRecipes.filter((recipe) => favoriteIds.includes(recipe.id));
 
-  // Combiner les deux listes
+  // Combine both lists
   const allFavorites = [...convertedApiFavorites, ...staticFavorites];
 
   const handleRecipeClick = (recipe: Recipe) => {

@@ -16,40 +16,35 @@ export function RecipesPage() {
   const [apiRecipes, setApiRecipes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
-  const { toast } = useToast();
 
   useEffect(() => {
-    console.log("📄 RecipesPage: Chargement initial");
+    console.log(" RecipesPage: Chargement initial");
     loadRecipes();
     loadFavorites();
   }, []);
 
   const loadRecipes = async () => {
-    console.log("🔄 Chargement des recettes...");
+    console.log(" Chargement des recettes...");
 
     if (!apiService.isAuthenticated()) {
-      console.log("⚠️ Utilisateur non authentifié - skip du chargement");
+      console.log(" Utilisateur non authentifié - skip du chargement");
       setLoading(false);
       return;
     }
 
     try {
       setLoading(true);
-      console.log("📡 Appel API getUserRecipes...");
+      console.log(" Appel API getUserRecipes...");
       const recipes = await apiService.getUserRecipes();
-      console.log("✅ Recettes reçues:", recipes);
-      console.log("📊 Nombre de recettes:", recipes.length);
+      console.log(" Recettes reçues:", recipes);
+      console.log(" Nombre de recettes:", recipes.length);
       setApiRecipes(recipes);
     } catch (error: any) {
-      console.error("❌ Erreur lors du chargement des recettes:", error);
-      toast({
-        title: "Erreur",
-        description: error.message || "Impossible de charger vos recettes",
-        variant: "destructive",
-      });
+      console.error(" Erreur lors du chargement des recettes:", error);
+      console.error("Impossible de charger vos recettes:", error.message);
     } finally {
       setLoading(false);
-      console.log("🏁 Fin du chargement des recettes");
+      console.log(" Fin du chargement des recettes");
     }
   };
 
@@ -65,11 +60,7 @@ export function RecipesPage() {
 
   const toggleFavorite = async (recipeId: string) => {
     if (!apiService.isAuthenticated()) {
-      toast({
-        title: "Erreur",
-        description: "Vous devez être connecté pour ajouter des favoris",
-        variant: "destructive",
-      });
+      console.error("Vous devez être connecté pour ajouter des favoris");
       return;
     }
 
@@ -77,28 +68,17 @@ export function RecipesPage() {
       if (favoriteIds.includes(recipeId)) {
         await apiService.removeFavorite(recipeId);
         setFavoriteIds(favoriteIds.filter((id) => id !== recipeId));
-        toast({
-          title: "Succès",
-          description: "Recette retirée des favoris",
-        });
+        console.log(" Recette retirée des favoris");
       } else {
         await apiService.addFavorite(recipeId);
         setFavoriteIds([...favoriteIds, recipeId]);
-        toast({
-          title: "Succès",
-          description: "Recette ajoutée aux favoris",
-        });
+        console.log(" Recette ajoutée aux favoris");
       }
     } catch (error: any) {
-      toast({
-        title: "Erreur",
-        description: error.message || "Impossible de modifier les favoris",
-        variant: "destructive",
-      });
+      console.error(" Impossible de modifier les favoris:", error.message);
     }
   };
 
-  // Convertir les recettes API au format Recipe pour l'affichage
   const convertedApiRecipes: Recipe[] = apiRecipes.map((recipe) => {
     console.log("🔄 Conversion recette:", recipe.title, "- IA:", recipe.is_ai_generated);
 
@@ -123,13 +103,12 @@ export function RecipesPage() {
     };
   });
 
-  console.log("📋 Recettes converties de l'API:", convertedApiRecipes.length);
-  console.log("📋 Recettes statiques:", staticRecipes.length);
+  console.log(" Recettes converties de l API:", convertedApiRecipes.length);
+  console.log(" Recettes statiques:", staticRecipes.length);
 
-  // Combiner les recettes statiques et celles de l'API
   const allRecipes = [...convertedApiRecipes, ...staticRecipes];
 
-  console.log("📋 Total recettes combinées:", allRecipes.length);
+  console.log(" Total recettes combinées:", allRecipes.length);
 
   const filteredRecipes = allRecipes.filter((recipe) => {
     const matchesSearch = recipe.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -147,13 +126,11 @@ export function RecipesPage() {
   return (
     <div className="flex-1 overflow-y-auto pb-24">
       <div className="max-w-6xl mx-auto p-6 space-y-8">
-        {/* Header */}
         <div className="pt-4">
           <h1 className="text-5xl mb-2 display-font text-primary">Collection de Recettes</h1>
           <p className="text-muted-foreground text-lg">Parcourez notre sélection gastronomique</p>
         </div>
 
-        {/* Loading State */}
         {loading && (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -162,7 +139,6 @@ export function RecipesPage() {
 
         {!loading && (
           <>
-            {/* Search */}
             <div className="relative max-w-2xl">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
@@ -173,7 +149,6 @@ export function RecipesPage() {
               />
             </div>
 
-            {/* Filters */}
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Filter className="w-5 h-5" />
@@ -210,14 +185,12 @@ export function RecipesPage() {
               </div>
             </div>
 
-            {/* Results Count */}
             <div className="flex items-center justify-between">
               <h3 className="text-2xl display-font">
                 {filteredRecipes.length} recettes disponibles
               </h3>
             </div>
 
-            {/* Recipes Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredRecipes.map((recipe) => (
                 <RecipeCard
@@ -233,7 +206,6 @@ export function RecipesPage() {
               ))}
             </div>
 
-            {/* Empty State */}
             {filteredRecipes.length === 0 && (
               <div className="text-center py-16 space-y-6">
                 <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
@@ -251,6 +223,7 @@ export function RecipesPage() {
         )}
       </div>
 
+<<<<<<< HEAD
       {/* Recipe Detail Dialog */}
       <RecipeDetail
         recipe={selectedRecipe}

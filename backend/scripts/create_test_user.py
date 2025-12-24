@@ -4,7 +4,7 @@ from passlib.context import CryptContext
 from dotenv import load_dotenv
 import os
 
-# Charger les variables d'environnement
+# Load environment variables
 load_dotenv()
 
 # Configuration
@@ -15,7 +15,7 @@ pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 async def create_test_user():
     try:
         print(f"Tentative de connexion à MongoDB: {MONGODB_URL}")
-        # Connexion à MongoDB
+        # Connect to MongoDB
         client = AsyncIOMotorClient(MONGODB_URL)
         # Use explicit database name if provided in .env, otherwise fall back to driver's default
         if DATABASE_NAME:
@@ -24,7 +24,7 @@ async def create_test_user():
             db = client.get_default_database()
         users_collection = db.users
 
-        # Données de l'utilisateur de test
+        # Test user data
         password = "testpassword123"
         hashed_password = pwd_context.hash(password)
         # Include username to match Pydantic model expectations used by the API
@@ -36,19 +36,19 @@ async def create_test_user():
         }
 
         print(f"Recherche de l'utilisateur existant avec l'email: {test_user['email']}")
-        # Vérifier si l'utilisateur existe déjà
+        # Check if the user already exists
         existing_user = await users_collection.find_one({"email": test_user["email"]})
         if existing_user:
             print("L'utilisateur de test existe déjà")
             print(f"Mot de passe haché existant: {existing_user.get('hashed_password', 'Non trouvé')}")
         else:
-            # Créer l'utilisateur
+            # Create the user
             print("Création d'un nouvel utilisateur...")
             result = await users_collection.insert_one(test_user)
             print(f"Utilisateur de test créé avec succès. ID: {result.inserted_id}")
             print(f"Mot de passe haché: {hashed_password}")
 
-        # Vérifier la connexion
+        # Verify the login
         print("\nTest de la connexion:")
         stored_user = await users_collection.find_one({"email": test_user["email"]})
         if stored_user:
