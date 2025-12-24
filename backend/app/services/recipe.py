@@ -22,11 +22,22 @@ class RecipeService:
         return doc
 
     async def get_recipe(self, recipe_id: str) -> dict:
-        return await recipes_collection.find_one({"_id": ObjectId(recipe_id)})
+        doc = await recipes_collection.find_one({"_id": ObjectId(recipe_id)})
+        if doc:
+            doc["_id"] = str(doc["_id"])
+            if "user_id" in doc:
+                doc["user_id"] = str(doc["user_id"])
+        return doc
 
     async def get_user_recipes(self, user_id: ObjectId) -> List[dict]:
         cursor = recipes_collection.find({"user_id": user_id})
-        return await cursor.to_list(length=None)
+        recipes = await cursor.to_list(length=None)
+        # Convert ObjectId fields to strings
+        for recipe in recipes:
+            recipe["_id"] = str(recipe["_id"])
+            if "user_id" in recipe:
+                recipe["user_id"] = str(recipe["user_id"])
+        return recipes
 
     async def update_recipe(self, recipe_id: str, recipe_data: dict) -> dict:
         await recipes_collection.update_one(

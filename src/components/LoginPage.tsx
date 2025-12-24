@@ -17,7 +17,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [animationKey, setAnimationKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -69,7 +68,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
   const toggleMode = () => {
     setIsSignup(!isSignup);
-    setAnimationKey((prev) => prev + 1);
     setError(null);
     setEmail("");
     setPassword("");
@@ -87,7 +85,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         const response = await apiService.forgotPassword(forgotEmail);
         if (response.email_sent) {
           setForgotSuccess(
-            "Un code de réinitialisation a été envoyé à votre adresse email. Vérifiez votre boîte de réception."
+            "Un code de réinitialisation a été envoyé à votre adresse email. Vérifiez votre boîte de réception.",
           );
         } else if (response.reset_code) {
           // Dev mode: email is not configured, show the code
@@ -99,7 +97,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       } else {
         await apiService.resetPassword(resetToken, newPassword);
         setForgotSuccess(
-          "Mot de passe réinitialisé avec succès ! Vous pouvez maintenant vous connecter."
+          "Mot de passe réinitialisé avec succès ! Vous pouvez maintenant vous connecter.",
         );
         setTimeout(() => {
           setShowForgotPassword(false);
@@ -127,28 +125,9 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     setShowForgotPassword(true);
   };
 
-  // Form Component
-  const FormSection = () => (
-    <motion.div
-      key={`form-${animationKey}`}
-      initial={{
-        x: isSignup ? "-100%" : "100%",
-        zIndex: 10,
-      }}
-      animate={{
-        x: 0,
-        zIndex: 10,
-      }}
-      exit={{
-        x: isSignup ? "100%" : "-100%",
-        zIndex: 1,
-      }}
-      transition={{
-        duration: 0.8,
-        ease: [0.65, 0, 0.35, 1],
-      }}
-      className="absolute inset-0 w-full h-full flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-background overflow-hidden"
-    >
+  // Render JSX for form section
+  const formSectionJSX = (
+    <div className="absolute inset-0 w-full h-full flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-background overflow-hidden">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex items-center gap-2 mb-4 sm:mb-5">
@@ -164,9 +143,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             {isSignup ? "Créer un compte" : "Bienvenue"}
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base">
-            {isSignup
-              ? "Rejoignez notre communauté de gourmets"
-              : "Connectez-vous à votre compte"}
+            {isSignup ? "Rejoignez notre communauté de gourmets" : "Connectez-vous à votre compte"}
           </p>
         </div>
 
@@ -281,31 +258,12 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           </p>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 
-  // Hero Section with SaladThree
-  const HeroSection = () => (
-    <motion.div
-      key={`hero-${animationKey}`}
-      initial={{
-        x: isSignup ? "100%" : "-100%",
-        zIndex: 1,
-      }}
-      animate={{
-        x: 0,
-        zIndex: 1,
-      }}
-      exit={{
-        x: isSignup ? "-100%" : "100%",
-        zIndex: 10,
-      }}
-      transition={{
-        duration: 0.8,
-        ease: [0.65, 0, 0.35, 1],
-      }}
-      className="absolute inset-0 w-full h-full relative overflow-hidden"
-    >
+  // Render JSX for hero section
+  const heroSectionJSX = (
+    <div className="absolute inset-0 w-full h-full relative overflow-hidden">
       {/* 3D Background with SaladThree */}
       <div className="absolute inset-0 bg-primary/90">
         <SaladThree className="w-full h-full opacity-40" />
@@ -323,9 +281,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
         <div className="text-center max-w-lg px-4">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl mb-2.5 sm:mb-3 display-font leading-tight">
-            {isSignup
-              ? "Commencez votre aventure culinaire"
-              : "Découvrez de nouvelles saveurs"}
+            {isSignup ? "Commencez votre aventure culinaire" : "Découvrez de nouvelles saveurs"}
           </h2>
           <p className="text-sm sm:text-base lg:text-lg text-white/90 leading-relaxed">
             {isSignup
@@ -345,7 +301,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           className="absolute bottom-20 sm:bottom-32 left-10 sm:left-20 w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-white/10 backdrop-blur-sm"
         />
       </div>
-    </motion.div>
+    </div>
   );
 
   return (
@@ -362,7 +318,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               transition: "left 0.8s cubic-bezier(0.65, 0, 0.35, 1)",
             }}
           >
-            <FormSection />
+            {formSectionJSX}
           </div>
 
           {/* Hero Section - slides left/right */}
@@ -374,15 +330,13 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               transition: "left 0.8s cubic-bezier(0.65, 0, 0.35, 1)",
             }}
           >
-            <HeroSection />
+            {heroSectionJSX}
           </div>
         </div>
       </div>
 
       {/* Mobile: Form only */}
-      <div className="lg:hidden w-full h-full">
-        <FormSection />
-      </div>
+      <div className="lg:hidden w-full h-full">{formSectionJSX}</div>
 
       {/* "Forgot password" modal */}
       <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
