@@ -2,13 +2,14 @@ import { useState } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Search, X, Sparkles, ChefHat, AlertCircle } from "lucide-react";
+import { Search, X, Sparkles, ChefHat, AlertCircle, Check, RotateCcw } from "lucide-react";
 import { RecipeCard } from "./RecipeCard";
 import { RecipeDetail } from "./RecipeDetail";
 import { recipes, Recipe, calculateMatchPercentage } from "../data/recipes";
 import { isValidIngredient, findSimilarIngredients } from "../data/ingredients";
-import { apiService } from "../services/api";
+import { apiService, RecipePreview } from "../services/api";
 import { Alert, AlertDescription } from "./ui/alert";
+import { useToast } from "../hooks/use-toast";
 
 interface HomePageProps {
   ingredients: string[];
@@ -29,6 +30,11 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // New states for recipe preview flow
+  const [recipePreview, setRecipePreview] = useState<RecipePreview | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
 
   const addIngredient = (ingredientToAdd?: string) => {
     const ingredient = ingredientToAdd || inputValue;
@@ -94,27 +100,12 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
 
     setIsGenerating(true);
     setError(null);
+    setRecipePreview(null);
 
     try {
-      const generatedRecipe = await apiService.generateRecipe(ingredients);
-
-      // Convertir la recette générée au format Recipe
-      const aiRecipe: Recipe = {
-        id: generatedRecipe.id || `ai-${Date.now()}`,
-        name: generatedRecipe.title,
-        image: recipes[0]?.image || "/placeholder-recipe.jpg", // Image par défaut
-        difficulty: "Moyen",
-        time: `${generatedRecipe.cooking_time} min`,
-        servings: generatedRecipe.servings,
-        ingredients: generatedRecipe.ingredients.map((ing) => ({
-          name: ing,
-          quantity: "selon la recette",
-        })),
-        instructions: generatedRecipe.instructions,
-        isAiGenerated: true,
-      };
-
-      setSuggestedRecipes([aiRecipe]);
+      const preview = await apiService.generateRecipe(ingredients);
+      setRecipePreview(preview);
+      setSuggestedRecipes([]);
       setShowAiRecipes(true);
     } catch (err) {
       console.error("Erreur lors de la génération de la recette:", err);
@@ -126,6 +117,53 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const acceptRecipe = async () => {
+    if (!recipePreview) return;
+
+    setIsSaving(true);
+    try {
+      await apiService.saveRecipe({
+        title: recipePreview.title,
+        ingredients: recipePreview.ingredients,
+        instructions: recipePreview.instructions,
+        cooking_time: recipePreview.cooking_time,
+        servings: recipePreview.servings,
+        difficulty: recipePreview.difficulty,
+        image_url: recipePreview.image_url,
+      });
+
+      toast({
+        title: "Recette sauvegardée !",
+        description: `"${recipePreview.title}" a été ajoutée à vos recettes.`,
+      });
+
+      setRecipePreview(null);
+      setShowAiRecipes(false);
+    } catch (err) {
+      toast({
+        title: "Erreur",
+        description: err instanceof Error ? err.message : "Impossible de sauvegarder la recette",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const rejectRecipe = () => {
+    setRecipePreview(null);
+    setShowAiRecipes(false);
+    toast({
+      title: "Recette refusée",
+      description: "Vous pouvez générer une nouvelle recette.",
+    });
+  };
+
+  const regenerateRecipe = async () => {
+    setRecipePreview(null);
+    await generateAiRecipes();
   };
 
   const handleRecipeClick = (recipe: Recipe & { matchPercentage?: number }) => {
@@ -276,8 +314,110 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
           </Alert>
         )}
 
+        {/* AI Recipe Preview - Accept/Reject Flow */}
+        {recipePreview && (
+          <div className="space-y-4 sm:space-y-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl sm:text-2xl lg:text-3xl display-font flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-purple-500" />
+                Recette générée par IA
+              </h2>
+              <Badge className="px-3 py-1 sm:px-4 sm:py-2 bg-purple-500/20 text-purple-400 border-purple-500/30 text-xs sm:text-sm">
+                Aperçu
+              </Badge>
+            </div>
+
+            {/* Recipe Preview Card */}
+            <div className="bg-card border border-primary/20 rounded-2xl p-4 sm:p-6 space-y-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="w-full sm:w-48 h-32 sm:h-48 bg-gradient-to-br from-purple-500/20 to-primary/20 rounded-xl flex items-center justify-center">
+                  <ChefHat className="w-16 h-16 text-primary/50" />
+                </div>
+                <div className="flex-1 space-y-3">
+                  <h3 className="text-xl sm:text-2xl font-semibold text-primary">
+                    {recipePreview.title}
+                  </h3>
+                  <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      ⏱️ {recipePreview.cooking_time} min
+                    </span>
+                    <span className="flex items-center gap-1">
+                      👥 {recipePreview.servings} pers.
+                    </span>
+                    <Badge variant="outline" className="text-xs">
+                      {recipePreview.difficulty}
+                    </Badge>
+                  </div>
+
+                  {/* Ingredients */}
+                  <div>
+                    <h4 className="font-medium mb-2">Ingrédients :</h4>
+                    <ul className="text-sm text-muted-foreground space-y-1 max-h-24 overflow-y-auto">
+                      {recipePreview.ingredients.slice(0, 5).map((ing, i) => (
+                        <li key={i}>• {ing}</li>
+                      ))}
+                      {recipePreview.ingredients.length > 5 && (
+                        <li className="text-primary">
+                          + {recipePreview.ingredients.length - 5} autres...
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Instructions Preview */}
+              <div>
+                <h4 className="font-medium mb-2">Instructions :</h4>
+                <ol className="text-sm text-muted-foreground space-y-1 max-h-32 overflow-y-auto">
+                  {recipePreview.instructions.slice(0, 3).map((step, i) => (
+                    <li key={i} className="flex gap-2">
+                      <span className="text-primary font-medium">{i + 1}.</span>
+                      <span>{step}</span>
+                    </li>
+                  ))}
+                  {recipePreview.instructions.length > 3 && (
+                    <li className="text-primary">
+                      + {recipePreview.instructions.length - 3} étapes...
+                    </li>
+                  )}
+                </ol>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border">
+                <Button
+                  onClick={acceptRecipe}
+                  disabled={isSaving}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Check className="w-4 h-4 mr-2" />
+                  {isSaving ? "Sauvegarde..." : "Accepter et sauvegarder"}
+                </Button>
+                <Button
+                  onClick={regenerateRecipe}
+                  disabled={isGenerating}
+                  variant="outline"
+                  className="flex-1 border-primary/30"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  {isGenerating ? "Génération..." : "Régénérer"}
+                </Button>
+                <Button
+                  onClick={rejectRecipe}
+                  variant="ghost"
+                  className="flex-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Refuser
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Results */}
-        {suggestedRecipes.length > 0 && (
+        {suggestedRecipes.length > 0 && !recipePreview && (
           <div className="space-y-4 sm:space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl sm:text-2xl lg:text-3xl display-font">
@@ -305,7 +445,7 @@ export function HomePage({ ingredients, setIngredients }: HomePageProps) {
         )}
 
         {/* Empty State */}
-        {suggestedRecipes.length === 0 && ingredients.length > 0 && (
+        {suggestedRecipes.length === 0 && ingredients.length > 0 && !recipePreview && (
           <div className="text-center py-8 sm:py-12 lg:py-16 space-y-4 sm:space-y-5">
             <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
               <ChefHat className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-primary" />

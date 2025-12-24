@@ -74,10 +74,28 @@ class RecipeBase(BaseModel):
     instructions: List[str]
     cooking_time: int = Field(..., gt=0, description="Cooking time in minutes")
     servings: int = Field(..., gt=0)
+    difficulty: str = Field(default="Moyen", description="Difficulty level: Facile, Moyen, Difficile")
+    image_url: Optional[str] = Field(default=None, description="URL de l'image de la recette")
 
 
 class RecipeCreate(RecipeBase):
     pass
+
+
+class RecipeUpdate(BaseModel):
+    """Model for updating recipe fields"""
+    image_url: Optional[str] = Field(default=None, description="URL de l'image de la recette")
+
+
+class RecipePreview(BaseModel):
+    """Preview of a generated recipe (not yet saved)"""
+    title: str
+    ingredients: List[str]
+    instructions: List[str]
+    cooking_time: int
+    servings: int
+    difficulty: str = "Moyen"
+    image_url: Optional[str] = None
 
 
 class Recipe(RecipeBase):

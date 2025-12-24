@@ -1,4 +1,18 @@
-const API_BASE_URL = "http://localhost:8000";
+export const API_BASE_URL = "http://localhost:8000";
+
+// Helper to resolve image URLs (handles both absolute URLs and relative paths)
+export function resolveImageUrl(imageUrl: string | null | undefined): string | null {
+  if (!imageUrl) return null;
+  // If it's already an absolute URL, return as-is
+  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+    return imageUrl;
+  }
+  // If it's a relative path (starts with /), prefix with API base URL
+  if (imageUrl.startsWith("/")) {
+    return `${API_BASE_URL}${imageUrl}`;
+  }
+  return imageUrl;
+}
 
 export interface GeneratedRecipe {
   title: string;
@@ -6,11 +20,23 @@ export interface GeneratedRecipe {
   instructions: string[];
   cooking_time: number;
   servings: number;
+  difficulty?: "Facile" | "Moyen" | "Difficile";
+  image_url?: string | null;
   id?: string;
   _id?: string;
   user_id?: string;
   is_ai_generated?: boolean;
   created_at?: string;
+}
+
+export interface RecipePreview {
+  title: string;
+  ingredients: string[];
+  instructions: string[];
+  cooking_time: number;
+  servings: number;
+  difficulty: "Facile" | "Moyen" | "Difficile";
+  image_url?: string | null;
 }
 
 export interface UserStats {
@@ -34,8 +60,8 @@ class ApiService {
     };
   }
 
-  async generateRecipe(ingredients: string[]): Promise<GeneratedRecipe> {
-    console.log("🌐 API: Génération de recette");
+  async generateRecipe(ingredients: string[]): Promise<RecipePreview> {
+    console.log("🌐 API: Génération de recette (preview)");
     console.log("🌐 URL:", `${API_BASE_URL}/recipes/generate`);
     console.log("🌐 Ingrédients envoyés:", ingredients);
 
@@ -60,6 +86,94 @@ class ApiService {
     const data = await response.json();
     console.log("🌐 Recette générée reçue:", data);
     return data;
+  }
+
+  async saveRecipe(recipe: {
+    title: string;
+    ingredients: string[];
+    instructions: string[];
+    cooking_time: number;
+    servings: number;
+    difficulty: string;
+    image_url?: string | null;
+  }): Promise<GeneratedRecipe> {
+    console.log("🌐 API: Sauvegarde de recette");
+    console.log("🌐 URL:", `${API_BASE_URL}/recipes/save`);
+
+    const response = await fetch(`${API_BASE_URL}/recipes/save`, {
+      method: "POST",
+      headers: this.getHeaders(),
+      body: JSON.stringify(recipe),
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error("Vous devez être connecté pour sauvegarder une recette");
+      }
+      const error = await response.json();
+      throw new Error(error.detail || "Erreur lors de la sauvegarde de la recette");
+    }
+
+    const data = await response.json();
+    console.log("🌐 Recette sauvegardée:", data);
+    return data;
+  }
+
+  async updateRecipeImage(recipeId: string, imageUrl: string): Promise<GeneratedRecipe> {
+    console.log("🌐 API: Mise à jour image recette");
+    console.log("🌐 URL:", `${API_BASE_URL}/recipes/${recipeId}`);
+
+    const response = await fetch(`${API_BASE_URL}/recipes/${recipeId}`, {
+      method: "PATCH",
+      headers: this.getHeaders(),
+      body: JSON.stringify({ image_url: imageUrl }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error("Vous devez être connecté");
+      }
+      if (response.status === 403) {
+        throw new Error("Vous n'êtes pas autorisé à modifier cette recette");
+      }
+      const error = await response.json();
+      throw new Error(error.detail || "Erreur lors de la mise à jour de l'image");
+    }
+
+    return response.json();
+  }
+
+  async uploadRecipeImage(
+    recipeId: string,
+    file: File,
+  ): Promise<{ message: string; image_url: string }> {
+    console.log("🌐 API: Upload image recette");
+    console.log("🌐 URL:", `${API_BASE_URL}/recipes/${recipeId}/upload-image`);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const token = this.getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/recipes/${recipeId}/upload-image`, {
+      method: "POST",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error("Vous devez être connecté");
+      }
+      if (response.status === 403) {
+        throw new Error("Vous n'êtes pas autorisé à modifier cette recette");
+      }
+      const error = await response.json();
+      throw new Error(error.detail || "Erreur lors de l'upload de l'image");
+    }
+
+    return response.json();
   }
 
   async getUserRecipes(): Promise<GeneratedRecipe[]> {

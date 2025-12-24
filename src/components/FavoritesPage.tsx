@@ -3,7 +3,7 @@ import { RecipeDetail } from "./RecipeDetail";
 import { Search, Heart, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Recipe, recipes as staticRecipes } from "../data/recipes";
-import { apiService } from "../services/api";
+import { apiService, resolveImageUrl } from "../services/api";
 import { useToast } from "../hooks/use-toast";
 
 interface FavoritesPageProps {
@@ -68,19 +68,27 @@ export function FavoritesPage({ onBack }: FavoritesPageProps) {
   };
 
   // Convertir les favoris API au format Recipe pour l'affichage
-  const convertedApiFavorites: Recipe[] = apiFavorites.map((recipe) => ({
-    id: recipe.id || recipe._id,
-    name: recipe.title,
-    image: recipe.is_ai_generated
-      ? "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400"
-      : "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400",
-    difficulty: "Moyen" as const,
-    time: `${recipe.cooking_time} min`,
-    servings: recipe.servings,
-    ingredients: recipe.ingredients.map((ing: string) => ({ name: ing, quantity: "" })),
-    instructions: recipe.instructions,
-    isAiGenerated: recipe.is_ai_generated || false,
-  }));
+  const convertedApiFavorites: Recipe[] = apiFavorites.map((recipe) => {
+    // Use custom image if set, otherwise default based on type
+    let imageUrl = resolveImageUrl(recipe.image_url);
+    if (!imageUrl) {
+      imageUrl = recipe.is_ai_generated
+        ? "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400"
+        : "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400";
+    }
+
+    return {
+      id: recipe.id || recipe._id,
+      name: recipe.title,
+      image: imageUrl,
+      difficulty: (recipe.difficulty as "Facile" | "Moyen" | "Difficile") || "Moyen",
+      time: `${recipe.cooking_time} min`,
+      servings: recipe.servings,
+      ingredients: recipe.ingredients.map((ing: string) => ({ name: ing, quantity: "" })),
+      instructions: recipe.instructions,
+      isAiGenerated: recipe.is_ai_generated || false,
+    };
+  });
 
   // Filtrer les recettes statiques qui sont en favoris
   const staticFavorites = staticRecipes.filter((recipe) => favoriteIds.includes(recipe.id));

@@ -5,7 +5,7 @@ import { Search, Filter, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { recipes as staticRecipes, Recipe } from "../data/recipes";
-import { apiService } from "../services/api";
+import { apiService, resolveImageUrl } from "../services/api";
 import { useToast } from "../hooks/use-toast";
 
 export function RecipesPage() {
@@ -101,13 +101,20 @@ export function RecipesPage() {
   // Convertir les recettes API au format Recipe pour l'affichage
   const convertedApiRecipes: Recipe[] = apiRecipes.map((recipe) => {
     console.log("🔄 Conversion recette:", recipe.title, "- IA:", recipe.is_ai_generated);
+
+    // Use custom image if set, otherwise default based on type
+    let imageUrl = resolveImageUrl(recipe.image_url);
+    if (!imageUrl) {
+      imageUrl = recipe.is_ai_generated
+        ? "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400"
+        : "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400";
+    }
+
     return {
       id: recipe.id || recipe._id,
       name: recipe.title,
-      image: recipe.is_ai_generated
-        ? "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400"
-        : "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400",
-      difficulty: "Moyen", // Par défaut
+      image: imageUrl,
+      difficulty: recipe.difficulty || "Moyen",
       time: `${recipe.cooking_time} min`,
       servings: recipe.servings,
       ingredients: recipe.ingredients.map((ing: string) => ({ name: ing, quantity: "" })),
@@ -245,7 +252,25 @@ export function RecipesPage() {
       </div>
 
       {/* Recipe Detail Dialog */}
-      <RecipeDetail recipe={selectedRecipe} open={dialogOpen} onOpenChange={setDialogOpen} />
+      <RecipeDetail
+        recipe={selectedRecipe}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        canEdit={
+          selectedRecipe ? apiRecipes.some((r) => (r.id || r._id) === selectedRecipe.id) : false
+        }
+        onImageUpdate={(recipeId, newImageUrl) => {
+          const resolvedUrl = resolveImageUrl(newImageUrl) || newImageUrl;
+          // Update local state
+          setApiRecipes((prev) =>
+            prev.map((r) => ((r.id || r._id) === recipeId ? { ...r, image_url: newImageUrl } : r)),
+          );
+          // Update selected recipe
+          if (selectedRecipe && selectedRecipe.id === recipeId) {
+            setSelectedRecipe({ ...selectedRecipe, image: resolvedUrl });
+          }
+        }}
+      />
     </div>
   );
 }

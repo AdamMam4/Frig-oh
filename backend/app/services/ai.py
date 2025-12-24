@@ -118,7 +118,8 @@ class AiService:
                 "ingredients": ings,
                 "instructions": instructions,
                 "cooking_time": template['time'],
-                "servings": template['servings']
+                "servings": template['servings'],
+                "difficulty": "Moyen"
             }
 
         if not self.model:
@@ -127,7 +128,18 @@ class AiService:
         
         print(f"✅ GEMINI ACTIF: Génération avec {len(ingredients)} ingrédients: {ingredients}")
 
-        prompt = f"Create a recipe using these ingredients: {', '.join(ingredients)}\nProvide the result as JSON with keys: title, ingredients (list), instructions (list), cooking_time (int), servings (int)."
+        prompt = f"""Tu es un chef cuisinier français expert. Crée une recette en FRANÇAIS en utilisant ces ingrédients: {', '.join(ingredients)}
+
+Réponds UNIQUEMENT avec un objet JSON valide (sans texte avant ou après) avec ces clés:
+- title: nom de la recette en français
+- ingredients: liste de strings (ex: ["200g de poulet", "2 tomates"])
+- instructions: liste d'étapes en français (ex: ["Préchauffer le four à 180°C", "Couper les légumes"])
+- cooking_time: temps de cuisson en minutes (nombre entier)
+- servings: nombre de portions (nombre entier)
+- difficulty: niveau de difficulté parmi "Facile", "Moyen", "Difficile"
+
+Exemple de format attendu:
+{{"title": "Poulet aux tomates", "ingredients": ["200g de poulet", "2 tomates"], "instructions": ["Étape 1...", "Étape 2..."], "cooking_time": 30, "servings": 2, "difficulty": "Facile"}}"""
 
         try:
             gen_fn = getattr(self.model, 'generate_content_async', None)
@@ -162,6 +174,9 @@ class AiService:
             if not all(k in recipe for k in ("title", "ingredients", "instructions", "cooking_time", "servings")):
                 print("⚠️ GEMINI: Clés manquantes dans la réponse, utilisation du fallback")
                 return fallback(ingredients)
+            # Ensure difficulty is set
+            if "difficulty" not in recipe:
+                recipe["difficulty"] = "Moyen"
             print(f"✅ GEMINI: Recette générée avec succès - {recipe['title']}")
             return recipe
         except Exception as e:

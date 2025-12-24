@@ -1,18 +1,51 @@
+import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Badge } from "./ui/badge";
 import { Separator } from "./ui/separator";
-import { ChefHat, Clock, Users, Sparkles, CheckCircle2 } from "lucide-react";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import {
+  ChefHat,
+  Clock,
+  Users,
+  Sparkles,
+  CheckCircle2,
+  ImageIcon,
+  Loader2,
+  Upload,
+  Link,
+} from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Recipe } from "../data/recipes";
+import { apiService } from "../services/api";
+import { useToast } from "../hooks/use-toast";
 
 interface RecipeDetailProps {
   recipe: Recipe | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   matchPercentage?: number;
+  canEdit?: boolean;
+  onImageUpdate?: (recipeId: string, newImageUrl: string) => void;
 }
 
-export function RecipeDetail({ recipe, open, onOpenChange, matchPercentage }: RecipeDetailProps) {
+export function RecipeDetail({
+  recipe,
+  open,
+  onOpenChange,
+  matchPercentage,
+  canEdit = false,
+  onImageUpdate,
+}: RecipeDetailProps) {
+  const [isEditingImage, setIsEditingImage] = useState(false);
+  const [newImageUrl, setNewImageUrl] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [imageMode, setImageMode] = useState<"url" | "upload">("url");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
   if (!recipe) return null;
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -26,6 +59,97 @@ export function RecipeDetail({ recipe, open, onOpenChange, matchPercentage }: Re
         return "bg-rose-500/20 text-rose-400 border-rose-500/30";
       default:
         return "bg-gray-500/20 text-gray-400 border-gray-500/30";
+    }
+  };
+
+  const handleSaveImage = async () => {
+    if (!recipe) return;
+
+    setIsSaving(true);
+    try {
+      let finalImageUrl: string;
+
+      if (imageMode === "upload" && selectedFile) {
+        // Upload file
+        const result = await apiService.uploadRecipeImage(recipe.id, selectedFile);
+        finalImageUrl = result.image_url;
+      } else if (imageMode === "url" && newImageUrl.trim()) {
+        // Use URL
+        await apiService.updateRecipeImage(recipe.id, newImageUrl.trim());
+        finalImageUrl = newImageUrl.trim();
+      } else {
+        toast({
+          title: "Erreur",
+          description: "Veuillez sélectionner une image ou entrer une URL",
+          variant: "destructive",
+        });
+        setIsSaving(false);
+        return;
+      }
+
+      toast({
+        title: "Image mise à jour",
+        description: "L'image de la recette a été modifiée avec succès.",
+      });
+
+      if (onImageUpdate) {
+        onImageUpdate(recipe.id, finalImageUrl);
+      }
+
+      // Reset state
+      setIsEditingImage(false);
+      setNewImageUrl("");
+      setSelectedFile(null);
+      setPreviewUrl(null);
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de mettre à jour l'image",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Type de fichier non supporté",
+          description: "Utilisez une image JPG, PNG, GIF ou WebP",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Fichier trop volumineux",
+          description: "La taille maximale est de 5 Mo",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setSelectedFile(file);
+      // Create preview URL
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingImage(false);
+    setNewImageUrl("");
+    setSelectedFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
     }
   };
 
@@ -62,7 +186,126 @@ export function RecipeDetail({ recipe, open, onOpenChange, matchPercentage }: Re
               </Badge>
             </div>
           )}
+
+          {/* Edit Image Button */}
+          {canEdit && (
+            <Button
+              onClick={() => setIsEditingImage(!isEditingImage)}
+              className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 bg-black/60 hover:bg-black/80 text-white backdrop-blur-sm"
+              size="sm"
+            >
+              <ImageIcon className="w-4 h-4 mr-1" />
+              Modifier l'image
+            </Button>
+          )}
         </div>
+
+        {/* Edit Image Form */}
+        {isEditingImage && canEdit && (
+          <div className="bg-background border border-primary/20 rounded-xl p-4 space-y-4">
+            <h4 className="font-medium text-sm">Modifier l'image de la recette</h4>
+
+            {/* Mode Toggle */}
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setImageMode("upload")}
+                variant={imageMode === "upload" ? "default" : "outline"}
+                size="sm"
+                className={imageMode === "upload" ? "bg-primary text-black" : ""}
+              >
+                <Upload className="w-4 h-4 mr-1" />
+                Importer
+              </Button>
+              <Button
+                onClick={() => setImageMode("url")}
+                variant={imageMode === "url" ? "default" : "outline"}
+                size="sm"
+                className={imageMode === "url" ? "bg-primary text-black" : ""}
+              >
+                <Link className="w-4 h-4 mr-1" />
+                URL
+              </Button>
+            </div>
+
+            {/* Upload Mode */}
+            {imageMode === "upload" && (
+              <div className="space-y-3">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileSelect}
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  className="hidden"
+                />
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  variant="outline"
+                  className="w-full h-20 border-dashed border-2 hover:border-primary/50"
+                >
+                  <div className="flex flex-col items-center gap-1">
+                    <Upload className="w-6 h-6 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      {selectedFile ? selectedFile.name : "Cliquez pour sélectionner une image"}
+                    </span>
+                  </div>
+                </Button>
+
+                {/* Preview */}
+                {previewUrl && (
+                  <div className="relative w-full h-32 rounded-lg overflow-hidden">
+                    <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
+
+                <p className="text-xs text-muted-foreground">
+                  Formats acceptés : JPG, PNG, GIF, WebP (max 5 Mo)
+                </p>
+              </div>
+            )}
+
+            {/* URL Mode */}
+            {imageMode === "url" && (
+              <div className="space-y-3">
+                <Input
+                  placeholder="URL de l'image (https://...)"
+                  value={newImageUrl}
+                  onChange={(e) => setNewImageUrl(e.target.value)}
+                  className="h-10"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Astuce : Utilisez une URL d'image depuis Unsplash, Pexels ou autre source
+                  d'images.
+                </p>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-2">
+              <Button
+                onClick={handleSaveImage}
+                disabled={
+                  isSaving ||
+                  (imageMode === "url" && !newImageUrl.trim()) ||
+                  (imageMode === "upload" && !selectedFile)
+                }
+                size="sm"
+                className="bg-primary text-black hover:bg-primary/90"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                    Sauvegarde...
+                  </>
+                ) : (
+                  "Sauvegarder"
+                )}
+              </Button>
+              <Button onClick={handleCancelEdit} variant="ghost" size="sm">
+                Annuler
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Info Cards */}
         <div className="grid grid-cols-3 gap-1.5 sm:gap-4">

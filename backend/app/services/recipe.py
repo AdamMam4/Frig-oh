@@ -39,7 +39,12 @@ class RecipeService:
         await recipes_collection.update_one(
             {"_id": ObjectId(recipe_id)}, {"$set": recipe_data}
         )
-        return await self.get_recipe(recipe_id)
+        doc = await self.get_recipe(recipe_id)
+        if doc:
+            doc["_id"] = str(doc["_id"])
+            if "user_id" in doc:
+                doc["user_id"] = str(doc["user_id"])
+        return doc
 
     async def delete_recipe(self, recipe_id: str) -> bool:
         result = await recipes_collection.delete_one({"_id": ObjectId(recipe_id)})

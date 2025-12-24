@@ -132,8 +132,21 @@ export function IngredientsPage({ ingredients, setIngredients, onNavigate }: Ing
 
       console.log("✅ Recette générée avec succès:", recipe);
       console.log("📝 Titre:", recipe.title);
-      console.log("🆔 ID:", recipe.id || recipe._id);
-      console.log("🤖 Générée par IA:", recipe.is_ai_generated);
+      console.log("⏱️ Temps de cuisson:", recipe.cooking_time);
+      console.log("📊 Difficulté:", recipe.difficulty);
+
+      // Sauvegarder la recette automatiquement
+      const savedRecipe = await apiService.saveRecipe({
+        title: recipe.title,
+        ingredients: recipe.ingredients,
+        instructions: recipe.instructions,
+        cooking_time: recipe.cooking_time,
+        servings: recipe.servings,
+        difficulty: recipe.difficulty,
+        image_url: recipe.image_url,
+      });
+
+      console.log("💾 Recette sauvegardée:", savedRecipe);
 
       toast({
         title: "✨ Recette générée !",
