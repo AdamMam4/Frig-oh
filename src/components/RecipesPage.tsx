@@ -223,7 +223,6 @@ export function RecipesPage() {
         )}
       </div>
 
-<<<<<<< HEAD
       {/* Recipe Detail Dialog */}
       <RecipeDetail
         recipe={selectedRecipe}
